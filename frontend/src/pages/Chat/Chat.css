@@ -1,0 +1,135 @@
+.Chat {
+  display: grid;
+  grid-template-columns: 22% auto;
+  gap: 1rem;
+  padding: 0 2rem;
+  height: 100vh;
+}
+
+.Left-side-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: relative;
+}
+
+.Chat-container {
+  background: var(--cardColor);
+  border-radius: 1rem;
+  padding: 1rem;
+  height: 80vh;
+  overflow-y: auto;
+}
+
+.Chat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.Right-side-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 45px; 
+  left: 45px;
+  z-index: 1000;
+  background-color: white;
+  border: 1px solid #ddd;
+  width: 200px;
+  max-height: 300px;
+  overflow-y: auto;
+  border-radius: 8px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  display: none; /* Initially hidden */
+}
+
+.user-dropdown.visible {
+  display: block; /* Show dropdown when it's needed */
+}
+
+
+.plus-button {
+  background-color: #ea49da;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 24px;
+  color: white;
+  position: absolute;
+  bottom: 20px; /* Adjust the bottom spacing */
+  left: 50%;
+  transform: translateX(-50%); /* Center horizontally */
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.plus-button:hover {
+  background-color: #d838c5;
+}
+
+
+
+/* Dropdown items */
+.dropdown-item {
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f0f0;
+}
+
+/* Show dropdown when it's visible */
+.user-dropdown.visible {
+  display: block; /* Show dropdown when it's needed */
+}
+
+@media screen and (max-width: 768px) {
+  .Chat {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .Left-side-chat {
+    width: 100%;
+    display: block;
+  }
+
+  .Right-side-chat {
+    width: 100%;
+    display: none;
+  }
+
+  .Left-side-chat.hide {
+    display: none;
+  }
+
+  .Right-side-chat.show {
+    display: flex;
+  }
+
+  .back-button {
+    display: none; /* Default to hidden */
+    background-color: var(--buttonColor);
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+
+  /* Only show back button on small screens */
+  .Right-side-chat.show .back-button {
+    display: block;
+  }
+}

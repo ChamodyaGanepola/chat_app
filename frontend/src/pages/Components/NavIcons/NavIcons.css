@@ -1,0 +1,27 @@
+.navIcons {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end; /* Align items to the right */
+    align-items: center;
+    gap: 20px;
+    padding: 10px 20px;
+    background-color: #c733bb;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+  }
+  
+  .logout-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; 
+  }
+  
+  .nav-icon {
+    cursor: pointer;
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .nav-icon:hover {
+    transform: scale(1.1);
+  }
+  

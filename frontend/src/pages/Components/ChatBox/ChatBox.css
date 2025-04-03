@@ -1,0 +1,180 @@
+/* Chat container */
+.Chat {
+  display: grid;
+  grid-template-columns: 22% 78%;
+  gap: 1rem;
+  height: 100vh;
+  padding: 1rem;
+}
+
+/* Left side chat container */
+.Left-side-chat {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  border-right: 1px solid #ececec;
+}
+
+/* Title for the chat section */
+.Left-side-chat h2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+/* List of conversations */
+.Chat-list {
+  overflow-y: auto;
+  max-height: calc(100vh - 100px); /* Adjust based on height */
+}
+
+/* Right side chat container */
+.Right-side-chat {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem;
+}
+
+/* ChatBox container adjustments */
+.ChatBox-container {
+  background: var(--cardColor);
+  border-radius: 1rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chat-header {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.chat-body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  gap: 1rem;
+  overflow-y: auto;
+}
+
+.message {
+  background: var(--buttonBg);
+  color: white;
+  padding: 0.7rem;
+  border-radius: 1rem;
+  max-width: 28rem;
+  width: fit-content;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.message > span:nth-child(2) {
+  font-size: 0.7rem;
+  color: var(--textColor);
+  align-self: flex-end;
+}
+
+.own {
+  align-self: flex-end;
+  background: linear-gradient(98.63deg, #ef8dbb 0%, #ed0b9a 100%);
+  border-radius: 1rem;
+}
+
+/* Sender input adjustments */
+.chat-sender {
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 1rem;
+  margin-top: 1rem;
+}
+
+.chat-sender > input {
+  height: 70%;
+  background-color: rgb(236, 236, 236);
+  border-radius: 0.5rem;
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 14px;
+  padding: 0px 15px;
+}
+
+.chat-sender > div:nth-of-type(1) {
+  background: rgb(233, 233, 233);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.chat-sender > div {
+  height: 70%;
+  padding: 0px 15px;
+}
+
+/* User conversation section */
+.follower {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.followerImage {
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+}
+
+.name {
+  display: flex;
+  flex-direction: column;
+}
+
+.name span {
+  font-size: 0.8rem;
+}
+
+/* Adjusting the online status dot */
+.online-dot {
+  width: 10px;
+  height: 10px;
+  background-color: #51e200;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+/* Styling for active conversations */
+.Chat-list .follower {
+  padding: 0.5rem 0;
+  cursor: pointer;
+  border-bottom: 1px solid #ececec;
+}
+
+.Chat-list .follower:hover {
+  background-color: #f0f0f0;
+}
+
+.avatar-circle {
+  width: 40px;
+  height: 40px;
+  background-color: #ea49da;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
