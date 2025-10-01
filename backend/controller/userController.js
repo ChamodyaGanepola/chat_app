@@ -1,7 +1,5 @@
 import UserModel from "../model/userModel.js";
 
-import bcrypt from "bcrypt";
-import jwt from 'jsonwebtoken'
 // Get a User
 export const getUser = async (req, res) => {
   const id = req.params.id;
@@ -35,7 +33,7 @@ export const getAllUsers = async (req, res) => {
   }
 };
 export const searchUser = async (req, res) => {
-  const query = req.query.q;  // Ensure you're extracting 'q' from the query string
+  const query = req.query.q;  
 
   // Debugging log
   console.log('Received query:', query);

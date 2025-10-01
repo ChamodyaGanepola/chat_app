@@ -9,14 +9,15 @@ import { useSelector } from "react-redux";
 
 
 function App() {
+  //ses Redux (useSelector) to see if a user is logged in.
   const user = useSelector((state) => state.authReducer.authData);
   return (
     <div
       className="App"
       style={{
         height:
-          window.location.href === "http://localhost:3000/chat"
-            ? "calc(100vh - 2rem)"
+          window.location.href === "http://localhost:5173/chat"
+            ? "calc(100vh)"
             : "auto",
       }}
     >

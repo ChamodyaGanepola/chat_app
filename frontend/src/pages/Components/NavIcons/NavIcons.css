@@ -1,27 +1,63 @@
+/* Container for the header icons */
 .navIcons {
-    width: 100%;
-    display: flex;
-    justify-content: flex-end; /* Align items to the right */
-    align-items: center;
-    gap: 20px;
-    padding: 10px 20px;
-    background-color: #c733bb;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-  }
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center; /* vertical center */
+  padding: 10px 20px 10px 20px;
+  background-color: #89267B;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 100;
+  margin:0;
   
-  .logout-container {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end; 
-  }
+}
+
+/* Logout container with right gap, vertically centered */
+.logout-container {
+  display: flex;
+  align-items: center; /* vertical center */
+  justify-content: flex-end;
+  margin-right: 20px; /* Gap from right edge */
+  height: 100%; /* take full header height */
+  padding-right: 10px;
+  padding-top: 30px;
+}
+
+
+/* Icon styling */
+.nav-icon {
+  cursor: pointer;
+  font-size: 30px;
+  color: white;
+  transition: transform 0.3s ease-in-out, color 0.3s ease-in-out;
   
+}
+
+
+/* Hover effect */
+.nav-icon:hover {
+  transform: scale(1.1);
+  color: #ff99cc;
+}
+
+/* Responsive adjustments for small screens */
+@media screen and (max-width: 768px) {
   .nav-icon {
-    cursor: pointer;
-    transition: transform 0.3s ease-in-out;
+    font-size: 24px; /* Smaller icon on small screens */
+  }
+  .logout-container {
+    margin-right: 10px; /* Reduce gap */
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .nav-icon {
+    font-size: 24px; /* Reduce size slightly */
+  }
+  .logout-container {
+    margin-right: 10px; /* Keep some gap from edge */
+    padding: 0 5px; /* Optional extra clickable area */
   }
   
-  .nav-icon:hover {
-    transform: scale(1.1);
-  }
-  
+}

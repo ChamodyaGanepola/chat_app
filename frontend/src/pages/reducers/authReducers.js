@@ -1,36 +1,56 @@
-const authReducer = (state = { authData: null, loading: false, error: false, updateLoading: false },action) => {
-    switch (action.type) {
-      case "AUTH_START":
-        return {...state, loading: true, error: false };
-      case "AUTH_SUCCESS":
-        localStorage.setItem("profile", JSON.stringify({...action?.data}));
-  
-        return {...state,  authData: action.data, loading: false, error: false };
-  
-  
-  
-        case "AUTH_FAIL":
-        return {...state, loading: false, error: true };
-      case "UPDATING_START":
-        return {...state, updateLoading: true , error: false}
-      case "UPDATING_SUCCESS":
-        localStorage.setItem("profile", JSON.stringify({...action?.data}));
-        return {...state, authData: action.data, updateLoading: false, error: false}
-      
-      
-        case "UPDATING_FAIL":
-        return {...state, updateLoading: true, error: true}
-  
-  
-  
-      case "LOG_OUT":
-        localStorage.clear();
-        return {...state,  authData: null, loading: false, error: false, updateLoading: false }
-  
-  
-        default:
-        return state;
-    }
-  };
-  
-  export default authReducer;
+// Auth reducer handles login, signup, profile updates, and logout
+// Stores user data, loading states, and error messages
+const authReducer = (
+  state = { authData: null, loading: false, error: null, updateLoading: false },
+  action
+) => {
+  switch (action.type) {
+    // Login/Signup started → sets loading to true and clears previous errors
+    case "AUTH_START":
+      return { ...state, loading: true, error: null };
+
+    // Login/Signup succeeded → saves user info in authData and localStorage, clears errors
+    case "AUTH_SUCCESS":
+      localStorage.setItem("profile", JSON.stringify({ ...action?.data }));
+      return { ...state, authData: action.data, loading: false, error: null };
+
+    // Login/Signup failed → sets descriptive error message
+    case "AUTH_FAIL":
+      return {
+        ...state,
+        loading: false,
+        error: action?.message || "Invalid credentials", // default message if none provided
+      };
+
+    // Profile update started → sets updateLoading to true and clears previous errors
+    case "UPDATING_START":
+      return { ...state, updateLoading: true, error: null };
+
+    // Profile update succeeded → updates user info in authData and localStorage, clears errors
+    case "UPDATING_SUCCESS":
+      localStorage.setItem("profile", JSON.stringify({ ...action?.data }));
+      return { ...state, authData: action.data, updateLoading: false, error: null };
+
+    // Profile update failed → sets descriptive error message
+    case "UPDATING_FAIL":
+      return {
+        ...state,
+        updateLoading: false,
+        error: action?.message || "Update failed", // default message if none provided
+      };
+
+    // Logout → clears user data from state and localStorage, resets all states
+    case "LOG_OUT":
+      localStorage.clear();
+      return { authData: null, loading: false, error: null, updateLoading: false };
+    // Clear authentication errors
+    case "CLEAR_AUTH_ERROR":
+      return { ...state, error: null };
+
+    // Default → return current state if no action matches
+    default:
+      return state;
+  }
+};
+
+export default authReducer;

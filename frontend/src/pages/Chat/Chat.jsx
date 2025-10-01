@@ -130,6 +130,7 @@ const Chat = () => {
   };
 
   return (
+    
     <div className="Chat">
       {/* Left Side - Chats List */}
       <div className={`Left-side-chat ${isChatOpen ? "hide" : ""}`}>

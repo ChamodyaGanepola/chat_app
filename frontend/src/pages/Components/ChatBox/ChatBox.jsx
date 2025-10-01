@@ -7,15 +7,22 @@ import { format } from "timeago.js";
 import InputEmoji from "react-input-emoji";
 
 const ChatBox = ({ chat, currentUser, setSendMessage, receivedMessage }) => {
+  // Store the other user’s data (chat partner)
   const [userData, setUserData] = useState(null);
+  // Store all messages of this chat
   const [messages, setMessages] = useState([]);
+  // Store the message being typed
   const [newMessage, setNewMessage] = useState("");
+  // Scroll reference to keep chat always at bottom
+  const scroll = useRef();
+  const imageRef = useRef();
 
+  // Update newMessage when user types
   const handleChange = (newMessage) => {
     setNewMessage(newMessage);
   };
 
-  // fetching data for header
+  //   Fetch chat partner’s user data for the header
   useEffect(() => {
     const userId = chat?.members?.find((id) => id !== currentUser);
     const getUserData = async () => {
@@ -30,7 +37,7 @@ const ChatBox = ({ chat, currentUser, setSendMessage, receivedMessage }) => {
     if (chat !== null) getUserData();
   }, [chat, currentUser]);
 
-  // fetch messages
+  // Fetch all messages for the chat when chat changes
   useEffect(() => {
     const fetchMessages = async () => {
       try {
@@ -44,12 +51,12 @@ const ChatBox = ({ chat, currentUser, setSendMessage, receivedMessage }) => {
     if (chat !== null) fetchMessages();
   }, [chat]);
 
-  // Always scroll to last Message
+  // Always scroll to last Message whenever messages update
   useEffect(() => {
     scroll.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Send Message
+  // Send Message handling
   const handleSend = async (e) => {
     e.preventDefault();
     const message = {
@@ -57,6 +64,7 @@ const ChatBox = ({ chat, currentUser, setSendMessage, receivedMessage }) => {
       text: newMessage,
       chatId: chat._id,
     };
+    // Find receiver (the other user in the chat)
     const receiverId = chat.members.find((id) => id !== currentUser);
     // send message to socket server
     setSendMessage({ ...message, receiverId });
@@ -64,12 +72,14 @@ const ChatBox = ({ chat, currentUser, setSendMessage, receivedMessage }) => {
     try {
       const { data } = await addMessage(message);
       setMessages([...messages, data]);
+      // Clear input field
       setNewMessage("");
     } catch {
       console.log("error");
     }
   };
 
+  //  Append new real-time message to chat if it belongs to current chat
   useEffect(() => {
     console.log("Message Arrived: ", receivedMessage);
     if (receivedMessage !== null && receivedMessage.chatId === chat._id) {
@@ -77,12 +87,11 @@ const ChatBox = ({ chat, currentUser, setSendMessage, receivedMessage }) => {
     }
   }, [receivedMessage]); // Only depend on receivedMessage
 
+  // Get first letter of user’s firstname for avatar
   const firstLetter = userData?.firstname
     ? userData.firstname.charAt(0).toUpperCase()
     : "?";
 
-  const scroll = useRef();
-  const imageRef = useRef();
   return (
     <>
       <div className="ChatBox-container">
@@ -145,9 +154,17 @@ const ChatBox = ({ chat, currentUser, setSendMessage, receivedMessage }) => {
             </div>{" "}
           </>
         ) : (
-          <span className="chatbox-empty-message">
-            Tap on a chat to start conversation...
-          </span>
+          <div className="chatbox-empty">
+            <img
+              src="/typingGIF.gif" // Place your GIF in the public folder
+              alt="Typing boy animation"
+              className="chatbox-empty-img"
+            />
+            <h3 className="chatbox-empty-title">No chat selected</h3>
+            <p className="chatbox-empty-text">
+              Pick a conversation from the left panel to start messaging.
+            </p>
+          </div>
         )}
       </div>
     </>

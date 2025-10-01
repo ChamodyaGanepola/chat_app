@@ -1,7 +1,7 @@
 import MessageModel from "../model/messageModel.js";
 import { io } from '../../socket/index.js';  // Import Socket.io instance
 
-// Add a message and broadcast it via Socket.io
+// Add a chat message and broadcast it via Socket.io
 export const addMessage = async (req, res) => {
   const { chatId, senderId, text } = req.body;
   const message = new MessageModel({
