@@ -1,3 +1,4 @@
+import { genSalt } from "bcrypt";
 import mongoose from "mongoose";
 
 const UserSchema = mongoose.Schema(
@@ -16,6 +17,11 @@ const UserSchema = mongoose.Schema(
     },
     lastname: {
       type: String,
+      required: true,
+    },
+    gender: {
+      type: String,
+      enum: ["Male", "Female", "Other"], // restrict values
       required: true,
     },
   },

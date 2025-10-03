@@ -14,7 +14,7 @@ const Auth = () => {
     password: "",
     confirmpass: "",
   };
- 
+
   // Get loading state from Redux (true when login/signup is in progress)
   const loading = useSelector((state) => state.authReducer.loading);
   // Get error state
@@ -22,7 +22,7 @@ const Auth = () => {
 
   // No need Hook to redirect user after login/signup. since in App.jsx route automatically changes based on auth state.
   //const navigate = useNavigate();
-  
+
   // Hook to dispatch actions to Redux store
   const dispatch = useDispatch();
   // State to toggle between Login and Signup
@@ -39,44 +39,43 @@ const Auth = () => {
   };
 
   // Update state when input fields change
-const handleChange = (e) => {
-  setData({ ...data, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setData({ ...data, [e.target.name]: e.target.value });
 
-  // Clear confirm password error as soon as user types in password/confirm fields
-  if (!confirmPass && (e.target.name === "password" || e.target.name === "confirmpass")) {
-    setConfirmPass(true);
-  }
+    // Clear confirm password error as soon as user types in password/confirm fields
+    if (
+      !confirmPass &&
+      (e.target.name === "password" || e.target.name === "confirmpass")
+    ) {
+      setConfirmPass(true);
+    }
 
-  // Clear login/signup error when typing in any field
-  if (error) dispatch(clearAuthError());
-};
-
-
+    // Clear login/signup error when typing in any field
+    if (error) dispatch(clearAuthError());
+  };
 
   //to clear errors when the component mounts:
   useEffect(() => {
     dispatch(clearAuthError());
   }, [dispatch]);
 
-
   // Handle form submit (Login or Signup)
- 
-  const handleSubmit = (e) => {
-  e.preventDefault();
-  if (isSignUp) {
-    // If SignUp → check if passwords match
-    if (data.password === data.confirmpass) {
-      setConfirmPass(true); // only set true when passwords match
-      dispatch(signUp(data));
-    } else {
-      setConfirmPass(false); // show error if passwords don't match
-    }
-  } else {
-    //logIn(data) as preparing a package. dispatch(package) sends it to the store. Redux Thunk opens the package and does the job inside.
-    dispatch(logIn(data));
-  }
-};
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (isSignUp) {
+      // If SignUp → check if passwords match
+      if (data.password === data.confirmpass) {
+        setConfirmPass(true); // only set true when passwords match
+        dispatch(signUp(data));
+      } else {
+        setConfirmPass(false); // show error if passwords don't match
+      }
+    } else {
+      //logIn(data) as preparing a package. dispatch(package) sends it to the store. Redux Thunk opens the package and does the job inside.
+      dispatch(logIn(data));
+    }
+  };
 
   return (
     <div className="Auth">
@@ -147,6 +146,28 @@ const handleChange = (e) => {
               value={data.username}
               onChange={handleChange}
             />
+            {isSignUp && (
+              <select
+                required
+                className="infoInput"
+                name="gender"
+                value={data.gender || ""}
+                onChange={handleChange}
+              >
+                <option
+                  value=""
+                  disabled
+                  style={{
+                    color: data.gender ? "#000" : "#aaa", // light gray when nothing selected
+                  }}
+                >
+                  Gender
+                </option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            )}
           </div>
 
           {/* Password input (and Confirm Password only in SignUp mode) */}

@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useRef } from "react";
-import { addMessage, getMessages } from "../../../api/MessageRequests";
+import {
+  addMessage,
+  getMessages,
+  readMessage,
+} from "../../../api/MessageRequests";
 import { getUser } from "../../../api/UserRequest";
 import "./ChatBox.css";
 import { format } from "timeago.js";
@@ -42,6 +46,7 @@ const ChatBox = ({ chat, currentUser, setSendMessage, receivedMessage }) => {
     const fetchMessages = async () => {
       try {
         const { data } = await getMessages(chat._id);
+        console.log("Fetched messages:", data);
         setMessages(data);
       } catch (error) {
         console.log(error);
@@ -49,6 +54,17 @@ const ChatBox = ({ chat, currentUser, setSendMessage, receivedMessage }) => {
     };
 
     if (chat !== null) fetchMessages();
+
+    const markAsRead = async () => {
+      if (chat) {
+        try {
+          //await readMessage(chat._id);
+        } catch (err) {
+          console.log(err);
+        }
+      }
+    };
+    markAsRead();
   }, [chat]);
 
   // Always scroll to last Message whenever messages update
@@ -101,7 +117,17 @@ const ChatBox = ({ chat, currentUser, setSendMessage, receivedMessage }) => {
             <div className="chat-header">
               <div className="follower">
                 <div>
-                  <div className="avatar-circle">
+                  <div
+                    className="avatar-circle"
+                    style={{
+                      backgroundColor:
+                        userData?.gender === "Male"
+                          ? "#3498db" // blue for male
+                          : userData?.gender === "Female"
+                          ? "#ff69b4" // pink for female
+                          : "#808080", // gray for other/undefined
+                    }}
+                  >
                     <span className="avatar-text">{firstLetter}</span>
                   </div>
                   <div className="name" style={{ fontSize: "0.9rem" }}>
@@ -124,6 +150,7 @@ const ChatBox = ({ chat, currentUser, setSendMessage, receivedMessage }) => {
               {messages.map((message) => (
                 <>
                   <div
+                    key={message._id}
                     ref={scroll}
                     className={
                       message.senderId === currentUser

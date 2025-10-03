@@ -2,14 +2,27 @@
   display: flex;
   align-items: center;
   width: 100%;
-  padding: 10px;
+  padding: 10px 15px;
   gap: 10px;
+  border-radius: 12px;
+  transition: background 0.2s;
+  cursor: pointer;
 }
 
+/* Hover effect */
+.conversation:hover {
+  background-color: #e7b3e1;
+}
+
+/* Optional subtle bottom border instead of hr */
+.conversation:not(:last-child) {
+  border-bottom: 1px solid #ececec;
+}
+
+
 .avatar-circle {
-  width: 40px;
-  height: 40px;
-  background-color: #ea49da;
+  width: 45px;
+  height: 45px;
   color: white;
   display: flex;
   align-items: center;
@@ -18,23 +31,31 @@
   font-size: 16px;
   font-weight: bold;
   text-transform: uppercase;
+  flex-shrink: 0;   /* avatar never shrinks */
 }
 
 .name-status {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
+  flex-direction: column; /* stack username and status */
+  flex: 1;
+  min-width: 0; /* prevents overflow on small screens */
 }
 
 .username {
   font-size: 1rem;
   font-weight: 600;
-  flex: 1;
+  white-space: normal;       /* allow wrapping if needed */
+  overflow-wrap: break-word;  /* break long words */
+  display: -webkit-box;       /* for line clamp */
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;      /* maximum 2 lines */
+  overflow: hidden;           /* hide extra text beyond 2 lines */
 }
 
+
+
 .status {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: bold;
   color: #888;
 }
@@ -45,4 +66,8 @@
 
 .status.offline {
   color: #4f4d4c;
+}
+
+.last-message.unread {
+  font-weight: bold;
 }

@@ -41,7 +41,7 @@ const Chat = () => {
     const fetchUsers = async () => {
       try {
         const response = await getAllUser();
-        console.log(response.data); // Check the data you are fetching
+        console.log(response.data);
         // Filter out the logged-in user based on user._id
         setAllUsers(response.data.filter((u) => u._id !== user._id)); // Ensure user._id is correct
       } catch (error) {
@@ -109,7 +109,7 @@ const Chat = () => {
           senderId: user._id,
           receiverId: selectedUserId,
         });
-  
+
         if (newChatResponse.data) {
           setCurrentChat(newChatResponse.data);
         } else {
@@ -122,7 +122,6 @@ const Chat = () => {
       console.error("Error in creating or finding chat:", error);
     }
   };
-  
 
   // Toggle dropdown visibility on button click
   const toggleDropdown = () => {
@@ -130,7 +129,6 @@ const Chat = () => {
   };
 
   return (
-    
     <div className="Chat">
       {/* Left Side - Chats List */}
       <div className={`Left-side-chat ${isChatOpen ? "hide" : ""}`}>
@@ -147,21 +145,21 @@ const Chat = () => {
                 className="conversation"
               >
                 <Conversation
+                  key={chat._id}
                   data={chat}
                   currentUser={user._id}
                   online={checkOnlineStatus(chat)}
+                  setCurrentChat={setCurrentChat}
                 />
               </div>
             ))}
           </div>
-          
         </div>
         {/* Plus Button */}
         <button className="plus-button" onClick={toggleDropdown}>
           +
         </button>
 
-        
         {/* User Dropdown */}
         {isDropdownVisible && (
           <div

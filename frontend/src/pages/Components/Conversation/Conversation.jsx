@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { getUser } from "../../../api/UserRequest";
-import "./Conversation.css"
-const Conversation = ({ data, currentUser, online }) => {
+import { getMessages, readMessage } from "../../../api/MessageRequests";
+import "./Conversation.css";
+
+const Conversation = ({ data, currentUser, online, setCurrentChat }) => {
   const [userData, setUserData] = useState(null);
+  const [lastMessage, setLastMessage] = useState(null);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -17,34 +20,79 @@ const Conversation = ({ data, currentUser, online }) => {
         console.log(error);
       }
     };
-
     getUserData();
   }, []);
 
-  // Get the first letter of the username
-  const firstLetter = userData?.firstname ? userData.firstname.charAt(0).toUpperCase() : "?";
+  useEffect(() => {
+    const fetchLastMessage = async () => {
+      try {
+        const res = await getMessages(data._id);
+        if (res.data.length > 0) {
+          setLastMessage(res.data[res.data.length - 1]);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchLastMessage();
+  }, [data]);
+
+  const handleClick = async () => {
+    setCurrentChat(data);
+    if (
+      lastMessage &&
+      !lastMessage.read &&
+      lastMessage.senderId !== currentUser
+    ) {
+      try {
+        await readMessage(data._id, currentUser); // call backend
+        setLastMessage({ ...lastMessage, read: true });
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  };
+
+  const firstLetter = userData?.firstname
+    ? userData.firstname.charAt(0).toUpperCase()
+    : "?";
 
   return (
-    <>
-      <div className="conversation">
-        <div className="avatar-container">
-          <div className="avatar-circle">
-            <span className="avatar-text">{firstLetter}</span>
-          </div>
-        </div>
-        <div className="name-container">
-          <span className="username">
-            {userData?.firstname} {userData?.lastname}
-          </span>
-        </div>
-        <div className="status-container">
-          <span className={`status ${online ? "online" : "offline"}`}>
-            {online ? "Online" : "Offline"}
-          </span>
-        </div>
+    <div className="conversation" onClick={handleClick}>
+      <div
+        className="avatar-circle"
+        style={{
+          backgroundColor:
+            userData?.gender === "Male"
+              ? "#3498db" // blue for male
+              : userData?.gender === "Female"
+              ? "#ff69b4" // pink for female
+              : "#808080", // gray for other/undefined
+        }}
+      >
+        <span className="avatar-text">{firstLetter}</span>
       </div>
-      <hr style={{ width: "85%", border: "0.1px solid #ececec" }} />
-    </>
+
+      <div className="name-status">
+        <span className="username">
+          {userData?.firstname} {userData?.lastname}
+        </span>
+
+        <span className={`status ${online ? "online" : "offline"}`}>
+          {online ? "Online" : "Offline"}
+        </span>
+
+        <span
+          className={`last-message ${
+            lastMessage?.read === false && lastMessage.senderId !== currentUser
+              ? "unread"
+              : ""
+          }`}
+        >
+          {lastMessage?.text || ""}
+        </span>
+      </div>
+    </div>
   );
 };
 

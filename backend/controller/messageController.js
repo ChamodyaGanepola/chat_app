@@ -7,7 +7,8 @@ export const addMessage = async (req, res) => {
   const message = new MessageModel({
     chatId,
     senderId,
-    text,
+    text
+    
   });
 
   try {
@@ -26,8 +27,27 @@ export const getMessages = async (req, res) => {
   const { chatId } = req.params;
   try {
     const result = await MessageModel.find({ chatId });
+    console.log(result);
     res.status(200).json(result);  // Respond with the chat messages
   } catch (error) {
     res.status(500).json(error);  // Respond with error if message fetching fails
   }
 };
+
+// Mark all unread messages in a chat as read for the receiver
+export const markMessagesAsRead = async (req, res) => {
+  const { chatId, userId } = req.params;
+
+  try {
+    // Only mark messages as read if they are not sent by the current user
+    const result = await MessageModel.updateMany(
+      { chatId, senderId: { $ne: userId }, read: false },
+      { $set: { read: true } }
+    );
+
+    res.status(200).json({ updatedCount: result.modifiedCount });
+  } catch (error) {
+    res.status(500).json(error);
+  }
+};
+

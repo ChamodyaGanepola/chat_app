@@ -143,6 +143,7 @@
   box-sizing: border-box;
 }
 
+
 @media (max-width: 480px) {
   .authForm {
     padding: 1.5rem;     /* smaller padding */
