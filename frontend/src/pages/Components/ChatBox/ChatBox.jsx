@@ -151,7 +151,6 @@ const ChatBox = ({ chat, currentUser, setSendMessage, receivedMessage }) => {
                 <>
                   <div
                     key={message._id}
-                    ref={scroll}
                     className={
                       message.senderId === currentUser
                         ? "message own"
@@ -163,6 +162,7 @@ const ChatBox = ({ chat, currentUser, setSendMessage, receivedMessage }) => {
                   </div>
                 </>
               ))}
+              <div ref={scroll}></div>
             </div>
             {/* chat-sender */}
             <div className="chat-sender">
