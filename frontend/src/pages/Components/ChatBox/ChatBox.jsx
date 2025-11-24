@@ -18,7 +18,8 @@ const ChatBox = ({ chat, currentUser, setSendMessage, receivedMessage }) => {
   // Store the message being typed
   const [newMessage, setNewMessage] = useState("");
   // Scroll reference to keep chat always at bottom
-  const scroll = useRef();
+  const containerRef = useRef(null);     // the scrollable container (.chat-body)
+  const messagesEndRef = useRef(null);   // anchor at the end of messages
   const imageRef = useRef();
 
   // Update newMessage when user types
@@ -68,9 +69,16 @@ const ChatBox = ({ chat, currentUser, setSendMessage, receivedMessage }) => {
   }, [chat]);
 
   // Always scroll to last Message whenever messages update
-  useEffect(() => {
-    scroll.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+useEffect(() => {
+  // ensure DOM updated first
+  requestAnimationFrame(() => {
+    const container = containerRef.current;
+    if (container) {
+      // jump to bottom — keep UI stable; use smooth optionally
+      container.scrollTop = container.scrollHeight;
+    }
+  });
+}, [messages, chat]); // run when messages or chat changes
 
   // Send Message handling
   const handleSend = async (e) => {
@@ -146,7 +154,7 @@ const ChatBox = ({ chat, currentUser, setSendMessage, receivedMessage }) => {
               />
             </div>
             {/* chat-body */}
-            <div className="chat-body">
+            <div className="chat-body" ref={containerRef}>
               {messages.map((message) => (
                   <div
                     key={message._id}
@@ -160,7 +168,7 @@ const ChatBox = ({ chat, currentUser, setSendMessage, receivedMessage }) => {
                     <span>{format(message.createdAt)}</span>
                   </div>
               ))}
-              <div ref={scroll}></div>
+               <div ref={messagesEndRef} />
             </div>
             {/* chat-sender */}
             <div className="chat-sender">
