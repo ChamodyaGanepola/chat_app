@@ -148,7 +148,6 @@ const ChatBox = ({ chat, currentUser, setSendMessage, receivedMessage }) => {
             {/* chat-body */}
             <div className="chat-body">
               {messages.map((message) => (
-                <>
                   <div
                     key={message._id}
                     className={
@@ -160,7 +159,6 @@ const ChatBox = ({ chat, currentUser, setSendMessage, receivedMessage }) => {
                     <span>{message.text}</span>{" "}
                     <span>{format(message.createdAt)}</span>
                   </div>
-                </>
               ))}
               <div ref={scroll}></div>
             </div>
