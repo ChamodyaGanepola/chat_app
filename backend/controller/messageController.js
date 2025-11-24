@@ -1,9 +1,9 @@
 import MessageModel from "../model/messageModel.js";
-import { io } from '../../socket/index.js';  // Import Socket.io instance
+import { io } from '../server.js'
 
 // Add a chat message and broadcast it via Socket.io
 export const addMessage = async (req, res) => {
-  const { chatId, senderId, text } = req.body;
+  const { chatId, senderId,receiverId, text } = req.body;
   const message = new MessageModel({
     chatId,
     senderId,
@@ -13,9 +13,13 @@ export const addMessage = async (req, res) => {
 
   try {
     // Save the message to the database
-    const result = await message.save();
-    // Broadcast the new message via Socket.io
-    io.emit("receive-message", result); 
+    const result = await message.save(); 
+    // Broadcast in real-time only if receiver is online
+    // Check if receiver is online and send real-time message
+    const activeUser = io.getActiveUsers().find(u => u.userId === receiverId);
+    if (activeUser) {
+      io.to(activeUser.socketId).emit("receive-message", message);
+    }
     res.status(200).json(result);  // Respond with the saved message
   } catch (error) {
     res.status(500).json(error);  // Respond with error if message saving fails

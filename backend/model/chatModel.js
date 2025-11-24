@@ -1,4 +1,5 @@
-import mongoose from "mongoose"; //Mongoose library to work with MongoDB
+import mongoose from "mongoose"; 
+//Mongoose library to work with MongoDB
 
 // Define the schema (blueprint) for the Chat collection
 const ChatSchema = new mongoose.Schema(

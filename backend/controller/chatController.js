@@ -1,5 +1,5 @@
 import ChatModel from "../model/chatModel.js";
-import { io } from '../../socket/index.js';  // Import Socket.io instance
+import { io } from '../server.js'
 
 // ---------------------- Create a new chat ----------------------
 export const createChat = async (req, res) => {

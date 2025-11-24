@@ -11,15 +11,18 @@ import UserRoute from './route/userRoute.js';
 import ChatRoute from './route/chatRoute.js';
 import MessageRoute from './route/messageRoute.js';
 
-// Import the socket instance from the socket setup file
-import { io } from '../socket/index.js'; 
+// Socket setup
+import { setupSocket } from './socket/index.js';
+
 // Initialize the express application
 const app = express();
-
 // Create an HTTP server because need to integrate Socket.IO with the same server.
 const server = http.createServer(app);
+//Socket.IO instance returned from setupSocket. Can be used in controllers to emit events.
+export const io = setupSocket(server);
 
 // Middleware setup
+
 // Parses incoming JSON requests. Limit = 30mb for large payloads (like images, files).
 app.use(bodyParser.json({ limit: "30mb", extended: true }));
 // Parses URL-encoded data (e.g., form submissions). Same 30mb size limit.
@@ -58,5 +61,3 @@ app.use('/user', UserRoute);
 app.use('/chat', ChatRoute);
 app.use('/message', MessageRoute);
 
-// Attach Socket.IO server to the HTTP server so real-time features (like chat messages) can run alongside API requests.
-io.listen(server); 
