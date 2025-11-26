@@ -1,176 +1,136 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { io } from "socket.io-client";
+import { useSelector } from "react-redux";
 import ChatBox from "../Components/ChatBox/ChatBox";
+import ChatSender from "../Components/ChatSender/ChatSender";
 import Conversation from "../Components/Conversation/Conversation";
 import NavIcons from "../Components/NavIcons/NavIcons";
-import "./Chat.css";
 import { userChats, createChat, findChat } from "../../api/ChatRequests";
-import { useSelector } from "react-redux";
-import { io } from "socket.io-client";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack"; // Import MUI Icon
 import { getAllUser } from "../../api/UserRequest";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import "./Chat.css";
 
 const Chat = () => {
   const socket = useRef();
   const { user } = useSelector((state) => state.authReducer.authData);
 
   const [chats, setChats] = useState([]);
-  const [onlineUsers, setOnlineUsers] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
   const [currentChat, setCurrentChat] = useState(null);
-  const [sendMessage, setSendMessage] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
   const [receivedMessage, setReceivedMessage] = useState(null);
-  const [isChatOpen, setIsChatOpen] = useState(false); // Controls visibility in small screens
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth); // State to track the window width
-  const [allUsers, setAllUsers] = useState([]); // State to hold all users
-  const [isDropdownVisible, setIsDropdownVisible] = useState(false); // Controls dropdown visibility
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [userData, setUserData] = useState(null);
 
-  // Fetch chats for the logged-in user
+  // Fetch chats
   useEffect(() => {
     const getChats = async () => {
       try {
         const { data } = await userChats(user._id);
         setChats(data);
-      } catch (error) {
-        console.log(error);
+      } catch (err) {
+        console.log(err);
       }
     };
     getChats();
   }, [user._id]);
 
-  // Fetch all users for the dropdown, excluding the logged-in user
+  // Fetch all users
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await getAllUser();
-        console.log(response.data);
-        // Filter out the logged-in user based on user._id
-        setAllUsers(response.data.filter((u) => u._id !== user._id)); // Ensure user._id is correct
-      } catch (error) {
-        console.log(error);
+        const { data } = await getAllUser();
+        setAllUsers(data.filter((u) => u._id !== user._id));
+      } catch (err) {
+        console.log(err);
       }
     };
     fetchUsers();
   }, [user._id]);
 
-  // Connect to Socket.io
+  // Setup socket
   useEffect(() => {
     socket.current = io("ws://localhost:5000");
     socket.current.emit("new-user-add", user._id);
-    socket.current.on("get-users", (users) => {
-      setOnlineUsers(users);
-    });
-    // Listen for the 'create-chat' event
-    socket.current.on("create-chat", (newChat) => {
-      console.log("New Chat Created:", newChat);
-      // Add the new chat to the existing chat list
-      setChats((prevChats) => [...prevChats, newChat]);
-    });
-  }, [user]);
+    socket.current.on("receive-message", (data) => setReceivedMessage(data));
+  }, [user._id]);
 
-  // Send Message to socket server
-  useEffect(() => {
-    if (sendMessage !== null) {
-      socket.current.emit("send-message", sendMessage);
-    }
-  }, [sendMessage]);
+  // Handle sending message
+  const handleSend = async () => {
+    if (!newMessage.trim() || !currentChat) return;
 
-  // Get the message from socket server
-  useEffect(() => {
-    socket.current.on("receive-message", (data) => {
-      setReceivedMessage(data);
-    });
-  }, []);
-
-  // Function to check if a user is online
-  const checkOnlineStatus = (chat) => {
-    const chatMember = chat.members.find((member) => member !== user._id);
-    return onlineUsers.some((user) => user.userId === chatMember);
-  };
-
-  // Update window width when the screen is resized
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth); // Update the window width state
+    const message = {
+      senderId: user._id,
+      text: newMessage,
+      chatId: currentChat._id,
     };
 
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
+    const receiverId = currentChat.members.find((id) => id !== user._id);
+    socket.current.emit("send-message", { ...message, receiverId });
 
-  // Function to handle user selection from dropdown
-  const handleUserSelect = async (selectedUserId) => {
     try {
-      const existingChat = await findChat(user._id, selectedUserId);
-      if (existingChat.data) {
-        setCurrentChat(existingChat.data);
-      } else {
-        const newChatResponse = await createChat({
-          senderId: user._id,
-          receiverId: selectedUserId,
-        });
-
-        if (newChatResponse.data) {
-          setCurrentChat(newChatResponse.data);
-        } else {
-          console.error("Failed to create new chat");
-        }
-      }
-      setIsChatOpen(true);
-      setIsDropdownVisible(false);
-    } catch (error) {
-      console.error("Error in creating or finding chat:", error);
+      // Add to DB (replace with API call)
+      setMessages((prev) => [...prev, message]);
+      setNewMessage("");
+    } catch (err) {
+      console.log(err);
     }
   };
 
-  // Toggle dropdown visibility on button click
-  const toggleDropdown = () => {
-    setIsDropdownVisible(!isDropdownVisible);
-  };
+  // Append real-time messages
+  useEffect(() => {
+    if (receivedMessage && receivedMessage.chatId === currentChat?._id) {
+      setMessages((prev) => [...prev, receivedMessage]);
+    }
+  }, [receivedMessage, currentChat]);
+
+  // Load messages and chat user data
+  useEffect(() => {
+    if (currentChat) {
+      setMessages(currentChat.messages || []);
+      const otherUserId = currentChat.members.find((id) => id !== user._id);
+      // Fetch user data (replace with API)
+      const fetchUser = async () => {
+        // const { data } = await getUser(otherUserId);
+        setUserData({ firstname: "Demo", lastname: "User", gender: "Male" });
+      };
+      fetchUser();
+    }
+  }, [currentChat, user._id]);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <div className="Chat">
-      {/* Left Side - Chats List */}
+      {/* Left Side */}
       <div className={`Left-side-chat ${isChatOpen ? "hide" : ""}`}>
-        <div className="Chat-container">
-          <h2>Chats</h2>
-          <div className="Chat-list">
-            {chats.map((chat) => (
-              <div
-                key={chat._id}
-                onClick={() => {
-                  setCurrentChat(chat);
-                  setIsChatOpen(true);
-                }}
-                className="conversation"
-              >
-                <Conversation
-                  key={chat._id}
-                  data={chat}
-                  currentUser={user._id}
-                  online={checkOnlineStatus(chat)}
-                  setCurrentChat={setCurrentChat}
-                />
-              </div>
-            ))}
-          </div>
+        <h2>Chats</h2>
+        <div className="Chat-list">
+          {chats.map((c) => (
+            <div key={c._id} onClick={() => setCurrentChat(c)}>
+              <Conversation
+                data={c}
+                currentUser={user._id}
+                setCurrentChat={setCurrentChat}
+              />
+            </div>
+          ))}
         </div>
-        {/* Plus Button */}
-        <button className="plus-button" onClick={toggleDropdown}>
-          +
-        </button>
 
-        {/* User Dropdown */}
+        {/* Dropdown */}
+        <button className="plus-button" onClick={() => setIsDropdownVisible(!isDropdownVisible)}>+</button>
         {isDropdownVisible && (
-          <div
-            className={`user-dropdown ${isDropdownVisible ? "visible" : ""}`}
-          >
+          <div className="user-dropdown visible">
             {allUsers.map((u) => (
-              <div
-                key={u._id}
-                className="dropdown-item"
-                onClick={() => handleUserSelect(u._id)}
-              >
+              <div key={u._id} onClick={() => setCurrentChat(u)}>
                 {u.firstname} {u.lastname}
               </div>
             ))}
@@ -178,23 +138,24 @@ const Chat = () => {
         )}
       </div>
 
-      {/* Right Side - ChatBox */}
+      {/* Right Side */}
       <div className={`Right-side-chat ${isChatOpen ? "show" : ""}`}>
         <NavIcons />
-        {isChatOpen &&
-          windowWidth <= 768 && ( // Only show back button if on small screens
-            <button
-              className="back-button"
-              onClick={() => setIsChatOpen(false)}
-            >
-              <ArrowBackIcon />
-            </button>
-          )}
+        {windowWidth <= 768 && isChatOpen && (
+          <button className="back-button" onClick={() => setIsChatOpen(false)}>
+            <ArrowBackIcon />
+          </button>
+        )}
         <ChatBox
           chat={currentChat}
           currentUser={user._id}
-          setSendMessage={setSendMessage}
-          receivedMessage={receivedMessage}
+          messages={messages}
+          userData={userData}
+        />
+        <ChatSender
+          newMessage={newMessage}
+          setNewMessage={setNewMessage}
+          handleSend={handleSend}
         />
       </div>
     </div>
