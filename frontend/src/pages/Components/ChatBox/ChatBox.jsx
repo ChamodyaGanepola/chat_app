@@ -155,7 +155,7 @@ useEffect(() => {
             </div>
             {/* chat-body */}
             <div className="chat-body" ref={containerRef}>
-              {messages.slice(-5).map((message) => (
+              {messages.map((message) => (
                   <div
                     key={message._id}
                     className={
