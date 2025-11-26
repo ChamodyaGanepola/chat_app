@@ -1,26 +1,24 @@
-
 .Chat {
   height: 100vh;
   margin: 0;
   padding: 0;
   display: grid;
   grid-template-columns: 22% auto;
-  
+  overflow: hidden; /* prevents zoom shift */
 }
+
+/* LEFT SIDE */
 .Left-side-chat {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   position: relative;
-  margin: 0;
-  padding: 0 10px 0 0;
+  padding-right: 10px;
   height: 100%;
-  overflow-y: auto;
-  
+  overflow-y: auto;    /* scroll works */
 }
 
-
-
+/* Chat container */
 .Chat-container {
   background: var(--cardColor);
   border-radius: 1rem;
@@ -33,48 +31,40 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  overflow-y: auto;
 }
 
-
-
-/* Right-side chat container */
+/* RIGHT SIDE */
 .Right-side-chat {
   display: flex;
   flex-direction: column;
-  height: 100%; /* Full height */
+  height: 100%;
   gap: 1rem;
-  padding:0;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  overflow: hidden; /* prevents layout break on zoom */
 }
+
+/* Ensure ChatBox takes full width */
 .Right-side-chat > .ChatBox-container {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-}
-/* Right-side chat container */
-.Right-side-chat {
-  display: flex;
-  flex-direction: column;
-  height: 100%; /* Full height */
-  gap: 1rem;
-  padding: 0; /* Remove any extra padding that can push content */
-  margin: 0; /* Remove extra margin */
-  box-sizing: border-box; /* Ensure padding/margin doesn't exceed width */
-}
-
-/* ChatBox inside Right-side-chat should take full width */
-.Right-side-chat > .ChatBox-container {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  width: 100%; /* Ensure full width */
+  width: 100%;
   box-sizing: border-box;
 }
 
+/* NEW: Prevent zoom distortion */
+* {
+  max-width: 100%;
+  box-sizing: border-box;
+}
 
-
+/* DROPDOWN */
 .user-dropdown {
   position: absolute;
-  top: 45px; 
+  top: 45px;
   left: 45px;
   z-index: 1000;
   background-color: white;
@@ -84,14 +74,23 @@
   overflow-y: auto;
   border-radius: 8px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  display: none; /* Initially hidden */
+  display: none;
 }
 
 .user-dropdown.visible {
-  display: block; /* Show dropdown when it's needed */
+  display: block;
 }
 
+.dropdown-item {
+  padding: 10px;
+  cursor: pointer;
+}
 
+.dropdown-item:hover {
+  background-color: #f0f0f0;
+}
+
+/* PLUS BUTTON */
 .plus-button {
   background-color: #89267B;
   border: none;
@@ -105,51 +104,26 @@
   font-size: 24px;
   color: white;
   position: absolute;
-  bottom: 20px; /* Adjust the bottom spacing */
+  bottom: 20px;
   left: 50%;
-  transform: translateX(-50%); /* Center horizontally */
+  transform: translateX(-50%);
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
 }
 
-.plus-button:hover {
-  background-color: #89267B;
-}
-
-
-
-/* Dropdown items */
-.dropdown-item {
-  padding: 10px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.dropdown-item:hover {
-  background-color: #f0f0f0;
-}
-
-/* Show dropdown when it's visible */
-.user-dropdown.visible {
-  display: block; /* Show dropdown when it's needed */
-}
-
+/* MOBILE FIX */
 @media screen and (max-width: 768px) {
   .Chat {
     display: flex;
     flex-direction: column;
-    margin: 0;
-    padding-top: 0;
   }
 
   .Left-side-chat {
     width: 100%;
     display: block;
-    
   }
 
   .Right-side-chat {
     display: none;
-    
   }
 
   .Left-side-chat.hide {
@@ -161,7 +135,7 @@
   }
 
   .back-button {
-    display: none; /* Default to hidden */
+    display: none;
     background-color: var(--buttonColor);
     padding: 8px 12px;
     border: none;
@@ -170,8 +144,24 @@
     margin-bottom: 10px;
   }
 
-  /* Only show back button on small screens */
   .Right-side-chat.show .back-button {
     display: block;
   }
+}
+
+/* SCROLLBAR FIX */
+.ChatBox-messages {
+  overflow-y: auto !important;
+  height: 100%;
+  max-height: 100%;
+  padding-right: 5px;
+}
+
+/* always show scrollbar */
+.ChatBox-messages::-webkit-scrollbar {
+  width: 8px;
+}
+.ChatBox-messages::-webkit-scrollbar-thumb {
+  background: #bbb;
+  border-radius: 10px;
 }
