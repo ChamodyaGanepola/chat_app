@@ -1,29 +1,30 @@
-import React, { useEffect, useRef, useState } from "react";
-import { io } from "socket.io-client";
-import { useSelector } from "react-redux";
+import React, { useRef, useState, useEffect } from "react";
 import ChatBox from "../Components/ChatBox/ChatBox";
-import ChatSender from "../Components/ChatSender/ChatSender";
 import Conversation from "../Components/Conversation/Conversation";
 import NavIcons from "../Components/NavIcons/NavIcons";
-import { userChats, createChat, findChat } from "../../api/ChatRequests";
-import { getAllUser } from "../../api/UserRequest";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import "./Chat.css";
+import { userChats, createChat, findChat } from "../../api/ChatRequests";
+import { useSelector } from "react-redux";
+import { io } from "socket.io-client";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { getAllUser } from "../../api/UserRequest";
+import InputEmoji from "react-input-emoji";
 
 const Chat = () => {
   const socket = useRef();
   const { user } = useSelector((state) => state.authReducer.authData);
 
   const [chats, setChats] = useState([]);
-  const [allUsers, setAllUsers] = useState([]);
+  const [onlineUsers, setOnlineUsers] = useState([]);
   const [currentChat, setCurrentChat] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState("");
+  const [sendMessage, setSendMessage] = useState(null);
   const [receivedMessage, setReceivedMessage] = useState(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const [userData, setUserData] = useState(null);
+  const [allUsers, setAllUsers] = useState([]);
+  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+  const [newMessage, setNewMessage] = useState(""); // message input
+  const imageRef = useRef();
 
   // Fetch chats
   useEffect(() => {
@@ -31,106 +32,114 @@ const Chat = () => {
       try {
         const { data } = await userChats(user._id);
         setChats(data);
-      } catch (err) {
-        console.log(err);
+      } catch (error) {
+        console.log(error);
       }
     };
     getChats();
   }, [user._id]);
 
-  // Fetch all users
+  // Fetch all users for dropdown
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const { data } = await getAllUser();
-        setAllUsers(data.filter((u) => u._id !== user._id));
-      } catch (err) {
-        console.log(err);
+        const response = await getAllUser();
+        setAllUsers(response.data.filter((u) => u._id !== user._id));
+      } catch (error) {
+        console.log(error);
       }
     };
     fetchUsers();
   }, [user._id]);
 
-  // Setup socket
+  // Socket connection
   useEffect(() => {
     socket.current = io("ws://localhost:5000");
     socket.current.emit("new-user-add", user._id);
+    socket.current.on("get-users", (users) => setOnlineUsers(users));
+    socket.current.on("create-chat", (newChat) => setChats(prev => [...prev, newChat]));
+  }, [user]);
+
+  // Send message via socket
+  useEffect(() => {
+    if (sendMessage !== null) {
+      socket.current.emit("send-message", sendMessage);
+    }
+  }, [sendMessage]);
+
+  // Receive message from socket
+  useEffect(() => {
     socket.current.on("receive-message", (data) => setReceivedMessage(data));
-  }, [user._id]);
+  }, []);
 
-  // Handle sending message
+  const checkOnlineStatus = (chat) => {
+    const chatMember = chat.members.find((m) => m !== user._id);
+    return onlineUsers.some((u) => u.userId === chatMember);
+  };
+
+  const handleResize = () => setWindowWidth(window.innerWidth);
+  useEffect(() => {
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const handleUserSelect = async (selectedUserId) => {
+    try {
+      const existingChat = await findChat(user._id, selectedUserId);
+      if (existingChat.data) setCurrentChat(existingChat.data);
+      else {
+        const newChat = await createChat({ senderId: user._id, receiverId: selectedUserId });
+        if (newChat.data) setCurrentChat(newChat.data);
+      }
+      setIsChatOpen(true);
+      setIsDropdownVisible(false);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const toggleDropdown = () => setIsDropdownVisible(!isDropdownVisible);
+
   const handleSend = async () => {
-    if (!newMessage.trim() || !currentChat) return;
-
+    if (!newMessage.trim()) return;
     const message = {
       senderId: user._id,
       text: newMessage,
       chatId: currentChat._id,
     };
-
     const receiverId = currentChat.members.find((id) => id !== user._id);
-    socket.current.emit("send-message", { ...message, receiverId });
-
-    try {
-      // Add to DB (replace with API call)
-      setMessages((prev) => [...prev, message]);
-      setNewMessage("");
-    } catch (err) {
-      console.log(err);
-    }
+    setSendMessage({ ...message, receiverId });
+    setNewMessage("");
   };
-
-  // Append real-time messages
-  useEffect(() => {
-    if (receivedMessage && receivedMessage.chatId === currentChat?._id) {
-      setMessages((prev) => [...prev, receivedMessage]);
-    }
-  }, [receivedMessage, currentChat]);
-
-  // Load messages and chat user data
-  useEffect(() => {
-    if (currentChat) {
-      setMessages(currentChat.messages || []);
-      const otherUserId = currentChat.members.find((id) => id !== user._id);
-      // Fetch user data (replace with API)
-      const fetchUser = async () => {
-        // const { data } = await getUser(otherUserId);
-        setUserData({ firstname: "Demo", lastname: "User", gender: "Male" });
-      };
-      fetchUser();
-    }
-  }, [currentChat, user._id]);
-
-  // Handle window resize
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   return (
     <div className="Chat">
       {/* Left Side */}
       <div className={`Left-side-chat ${isChatOpen ? "hide" : ""}`}>
-        <h2>Chats</h2>
-        <div className="Chat-list">
-          {chats.map((c) => (
-            <div key={c._id} onClick={() => setCurrentChat(c)}>
-              <Conversation
-                data={c}
-                currentUser={user._id}
-                setCurrentChat={setCurrentChat}
-              />
-            </div>
-          ))}
+        <div className="Chat-container">
+          <h2>Chats</h2>
+          <div className="Chat-list">
+            {chats.map((chat) => (
+              <div
+                key={chat._id}
+                onClick={() => setCurrentChat(chat) || setIsChatOpen(true)}
+                className="conversation"
+              >
+                <Conversation
+                  data={chat}
+                  currentUser={user._id}
+                  online={checkOnlineStatus(chat)}
+                  setCurrentChat={setCurrentChat}
+                />
+              </div>
+            ))}
+          </div>
         </div>
-
-        {/* Dropdown */}
-        <button className="plus-button" onClick={() => setIsDropdownVisible(!isDropdownVisible)}>+</button>
+        <button className="plus-button" onClick={toggleDropdown}>+</button>
         {isDropdownVisible && (
           <div className="user-dropdown visible">
             {allUsers.map((u) => (
-              <div key={u._id} onClick={() => setCurrentChat(u)}>
+              <div key={u._id} className="dropdown-item" onClick={() => handleUserSelect(u._id)}>
                 {u.firstname} {u.lastname}
               </div>
             ))}
@@ -141,22 +150,36 @@ const Chat = () => {
       {/* Right Side */}
       <div className={`Right-side-chat ${isChatOpen ? "show" : ""}`}>
         <NavIcons />
-        {windowWidth <= 768 && isChatOpen && (
+        {isChatOpen && windowWidth <= 768 && (
           <button className="back-button" onClick={() => setIsChatOpen(false)}>
             <ArrowBackIcon />
           </button>
         )}
-        <ChatBox
-          chat={currentChat}
-          currentUser={user._id}
-          messages={messages}
-          userData={userData}
-        />
-        <ChatSender
-          newMessage={newMessage}
-          setNewMessage={setNewMessage}
-          handleSend={handleSend}
-        />
+
+        {currentChat ? (
+          <>
+            <ChatBox
+              chat={currentChat}
+              currentUser={user._id}
+              setSendMessage={setSendMessage}
+              receivedMessage={receivedMessage}
+            />
+
+            {/* Chat Sender only visible when a conversation is selected */}
+            <div className="chat-sender">
+              <div className="attach-btn" onClick={() => imageRef.current.click()}>+</div>
+              <InputEmoji value={newMessage} onChange={setNewMessage} />
+              <div className="send-button" onClick={handleSend}>Send</div>
+              <input type="file" style={{ display: "none" }} ref={imageRef} />
+            </div>
+          </>
+        ) : (
+          <div className="chatbox-empty">
+            <img src="/typingGIF.gif" alt="Typing" className="chatbox-empty-img" />
+            <h3>No chat selected</h3>
+            <p>Pick a conversation from the left panel to start messaging.</p>
+          </div>
+        )}
       </div>
     </div>
   );
