@@ -58,7 +58,7 @@ const ChatBox = ({ chat, currentUser, messages, userData }) => {
       ) : (
         <div className="chatbox-empty">
           <img src="/typingGIF.gif" alt="Typing animation" />
-          <h3>No chat selected</h3>
+          <h3>Currently No chat selected</h3>
           <p>Pick a conversation from the left panel to start messaging.</p>
         </div>
       )}
