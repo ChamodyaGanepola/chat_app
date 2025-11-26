@@ -11,9 +11,7 @@ const ChatBox = ({ chat, currentUser, messages, userData }) => {
     if (container) container.scrollTop = container.scrollHeight;
   }, [messages]);
 
-  const firstLetter = userData?.firstname
-    ? userData.firstname.charAt(0).toUpperCase()
-    : "?";
+  const firstLetter = userData?.firstname ? userData.firstname.charAt(0).toUpperCase() : "?";
 
   return (
     <div className="ChatBox-container">
