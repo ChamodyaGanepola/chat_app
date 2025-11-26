@@ -21,7 +21,7 @@ const Conversation = ({ data, currentUser, online, setCurrentChat }) => {
       }
     };
     getUserData();
-  },  [data, currentUser, dispatch]);
+  }, [data, currentUser, dispatch]);
 
   useEffect(() => {
     const fetchLastMessage = async () => {
@@ -75,9 +75,10 @@ const Conversation = ({ data, currentUser, online, setCurrentChat }) => {
 
       <div className="name-status">
         <span className="username">
-          {userData?.firstname} {userData?.lastname}
+          {userData
+            ? `${userData.firstname} ${userData.lastname}`
+            : "Loading..."}
         </span>
-
         <span className={`status ${online ? "online" : "offline"}`}>
           {online ? "Online" : "Offline"}
         </span>

@@ -20,36 +20,32 @@
 }
 
 
+
 .avatar-circle {
-  width: 45px;
-  height: 45px;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  font-size: 16px;
+  display: flex;            /* needed to center content */
+  justify-content: center;  /* horizontal centering */
+  align-items: center;      /* vertical centering */
+  color: #fff;              /* text color for contrast */
   font-weight: bold;
-  text-transform: uppercase;
-  flex-shrink: 0;   /* avatar never shrinks */
+  font-size: 18px;
+  margin-right: 10px;
+  flex-shrink: 0;           /* prevent shrinking */
 }
+
 
 .name-status {
   display: flex;
-  flex-direction: column; /* stack username and status */
-  flex: 1;
-  min-width: 0; /* prevents overflow on small screens */
+  flex-direction: column;
+  justify-content: center;
+  overflow: visible; /* make sure text is visible */
 }
-
 .username {
-  font-size: 1rem;
-  font-weight: 600;
-  white-space: normal;       /* allow wrapping if needed */
-  overflow-wrap: break-word;  /* break long words */
-  display: -webkit-box;       /* for line clamp */
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;      /* maximum 2 lines */
-  overflow: hidden;           /* hide extra text beyond 2 lines */
+  font-weight: 500;
+  font-size: 14px;
+  color: #000;
 }
 
 
