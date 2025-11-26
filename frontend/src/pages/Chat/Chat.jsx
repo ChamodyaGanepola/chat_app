@@ -3,8 +3,9 @@ import ChatBox from "../Components/ChatBox/ChatBox";
 import Conversation from "../Components/Conversation/Conversation";
 import NavIcons from "../Components/NavIcons/NavIcons";
 import "./Chat.css";
-import { userChats, createChat, findChat, getMessages } from "../../api/ChatRequests";
-import { getAllUser, getUserById } from "../../api/UserRequest";
+import { userChats, createChat, findChat } from "../../api/ChatRequests";
+import { getAllUser, getUser } from "../../api/UserRequest";
+import { getMessages } from "../../api/MessageRequests";
 import { useSelector } from "react-redux";
 import { io } from "socket.io-client";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -18,7 +19,7 @@ const Chat = () => {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [currentChat, setCurrentChat] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [userData, setUserData] = useState(null); // Other user's info
+  const [userData, setUserData] = useState(null);
   const [sendMessage, setSendMessage] = useState(null);
   const [receivedMessage, setReceivedMessage] = useState(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -28,27 +29,27 @@ const Chat = () => {
   const [newMessage, setNewMessage] = useState("");
   const imageRef = useRef();
 
-  // Fetch user chats
+  // Fetch chats for logged-in user
   useEffect(() => {
-    const getChatsData = async () => {
+    const getChats = async () => {
       try {
         const { data } = await userChats(user._id);
         setChats(data);
-      } catch (err) {
-        console.log(err);
+      } catch (error) {
+        console.log(error);
       }
     };
-    getChatsData();
+    getChats();
   }, [user._id]);
 
   // Fetch all users for dropdown
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await getAllUser();
-        setAllUsers(res.data.filter(u => u._id !== user._id));
-      } catch (err) {
-        console.log(err);
+        const response = await getAllUser();
+        setAllUsers(response.data.filter((u) => u._id !== user._id));
+      } catch (error) {
+        console.log(error);
       }
     };
     fetchUsers();
@@ -58,59 +59,55 @@ const Chat = () => {
   useEffect(() => {
     socket.current = io("ws://localhost:5000");
     socket.current.emit("new-user-add", user._id);
-
     socket.current.on("get-users", (users) => setOnlineUsers(users));
+    socket.current.on("create-chat", (newChat) => setChats((prev) => [...prev, newChat]));
+    socket.current.on("receive-message", (data) => setReceivedMessage(data));
+  }, [user]);
 
-    socket.current.on("create-chat", (newChat) => setChats(prev => [...prev, newChat]));
+  // Send message via socket
+  useEffect(() => {
+    if (sendMessage !== null) {
+      socket.current.emit("send-message", sendMessage);
+    }
+  }, [sendMessage]);
 
-    socket.current.on("receive-message", (data) => {
-      if (currentChat && currentChat._id === data.chatId) {
-        setMessages(prev => [...prev, data]);
-      } else {
-        setReceivedMessage(data);
-      }
-    });
-  }, [user, currentChat]);
-
-  // Window resize
+  // Update window width
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Check if a user in chat is online
+  // Check if a user is online
   const checkOnlineStatus = (chat) => {
-    const chatMember = chat.members.find(m => m !== user._id);
-    return onlineUsers.some(u => u.userId === chatMember);
+    const chatMember = chat.members.find((m) => m !== user._id);
+    return onlineUsers.some((u) => u.userId === chatMember);
   };
 
-  // Handle conversation click
+  // Handle selecting a chat
   const handleChatClick = async (chat) => {
     setCurrentChat(chat);
     setIsChatOpen(true);
-
-    // Fetch messages
     try {
+      // Fetch messages
       const res = await getMessages(chat._id);
-      setMessages(res.data);
+      setMessages(res.data || []);
 
-      // Get other user's data
-      const otherUserId = chat.members.find(id => id !== user._id);
-      const userRes = await getUserById(otherUserId);
+      // Fetch user info
+      const otherUserId = chat.members.find((id) => id !== user._id);
+      const userRes = await getUser(otherUserId);
       setUserData(userRes.data);
     } catch (err) {
       console.error(err);
     }
   };
 
-  // Handle selecting user from dropdown
+  // Handle creating or finding chat via dropdown
   const handleUserSelect = async (selectedUserId) => {
     try {
       const existingChat = await findChat(user._id, selectedUserId);
-      if (existingChat.data) {
-        handleChatClick(existingChat.data);
-      } else {
+      if (existingChat.data) handleChatClick(existingChat.data);
+      else {
         const newChat = await createChat({ senderId: user._id, receiverId: selectedUserId });
         if (newChat.data) handleChatClick(newChat.data);
       }
@@ -122,19 +119,16 @@ const Chat = () => {
 
   const toggleDropdown = () => setIsDropdownVisible(!isDropdownVisible);
 
-  // Send new message
-  const handleSend = async () => {
-    if (!newMessage.trim()) return;
-
+  const handleSend = () => {
+    if (!newMessage.trim() || !currentChat) return;
     const message = {
       senderId: user._id,
       text: newMessage,
       chatId: currentChat._id,
     };
-    const receiverId = currentChat.members.find(id => id !== user._id);
+    const receiverId = currentChat.members.find((id) => id !== user._id);
     setSendMessage({ ...message, receiverId });
-
-    setMessages(prev => [...prev, message]); // update locally
+    setMessages((prev) => [...prev, message]);
     setNewMessage("");
   };
 
@@ -146,25 +140,20 @@ const Chat = () => {
           <h2>Chats</h2>
           <div className="Chat-list">
             {chats.map((chat) => (
-              <div
+              <Conversation
                 key={chat._id}
-                onClick={() => handleChatClick(chat)}
-                className="conversation"
-              >
-                <Conversation
-                  data={chat}
-                  currentUser={user._id}
-                  online={checkOnlineStatus(chat)}
-                  setCurrentChat={setCurrentChat}
-                />
-              </div>
+                data={chat}
+                currentUser={user._id}
+                online={checkOnlineStatus(chat)}
+                setCurrentChat={() => handleChatClick(chat)}
+              />
             ))}
           </div>
         </div>
         <button className="plus-button" onClick={toggleDropdown}>+</button>
         {isDropdownVisible && (
           <div className="user-dropdown visible">
-            {allUsers.map(u => (
+            {allUsers.map((u) => (
               <div key={u._id} className="dropdown-item" onClick={() => handleUserSelect(u._id)}>
                 {u.firstname} {u.lastname}
               </div>
@@ -191,7 +180,7 @@ const Chat = () => {
               userData={userData}
             />
 
-            {/* Chat sender input */}
+            {/* Chat Sender */}
             <div className="chat-sender">
               <div className="attach-btn" onClick={() => imageRef.current.click()}>+</div>
               <InputEmoji value={newMessage} onChange={setNewMessage} />
