@@ -21,7 +21,7 @@ const Conversation = ({ data, currentUser, online, setCurrentChat }) => {
       }
     };
     getUserData();
-  }, []);
+  },  [data, currentUser, dispatch]);
 
   useEffect(() => {
     const fetchLastMessage = async () => {
