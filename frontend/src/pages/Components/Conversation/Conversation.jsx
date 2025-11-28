@@ -10,18 +10,19 @@ const Conversation = ({ data, currentUser, online, setCurrentChat }) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const userId = data.members.find((id) => id !== currentUser);
-    const getUserData = async () => {
-      try {
-        const { data } = await getUser(userId);
-        setUserData(data);
-        dispatch({ type: "SAVE_USER", data: data });
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    getUserData();
-  }, [data, currentUser, dispatch]);
+  const userId = data.members.find((id) => id !== currentUser);
+  const getUserData = async () => {
+    try {
+      const userRes = await getUser(userId); 
+      setUserData(userRes.data); 
+      dispatch({ type: "SAVE_USER", data: userRes.data });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  getUserData();
+}, [data, currentUser, dispatch]);
+
 
   useEffect(() => {
     const fetchLastMessage = async () => {

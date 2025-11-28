@@ -30,17 +30,27 @@ const Chat = () => {
   const imageRef = useRef();
 
   // Fetch chats for logged-in user
-  useEffect(() => {
-    const getChats = async () => {
-      try {
-        const { data } = await userChats(user._id);
-        setChats(data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    getChats();
-  }, [user._id]);
+ // In Chat, when fetching chats:
+useEffect(() => {
+  const getChats = async () => {
+    try {
+      const { data } = await userChats(user._id);
+      // Fetch user info for each chat
+      const chatsWithUserData = await Promise.all(
+        data.map(async (chat) => {
+          const otherUserId = chat.members.find((id) => id !== user._id);
+          const userRes = await getUser(otherUserId);
+          return { ...chat, userData: userRes.data };
+        })
+      );
+      setChats(chatsWithUserData);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  getChats();
+}, [user._id]);
+
 
   // Fetch all users for dropdown
   useEffect(() => {
