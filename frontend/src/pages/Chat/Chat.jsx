@@ -60,7 +60,7 @@ const Chat = () => {
     socket.current = io("https://chat-app-kali.onrender.com");
     socket.current.emit("new-user-add", user._id);
     socket.current.on("get-users", (users) => {
-      console.log("Active users from socket:", users); 
+      console.log("Active users from socket:", users);
       setOnlineUsers(users);
     });
 
@@ -79,11 +79,20 @@ const Chat = () => {
 
   // Receive Message from socket
   useEffect(() => {
-    if (
-      receivedMessage !== null &&
-      receivedMessage.chatId === currentChat?._id
-    ) {
-      setMessages((prev) => [...prev, receivedMessage]);
+    if (receivedMessage !== null) {
+      // Add to messages if it's the current chat
+      if (receivedMessage.chatId === currentChat?._id) {
+        setMessages((prev) => [...prev, receivedMessage]);
+      }
+
+      // Update the last message in the left chat list
+      setChats((prevChats) =>
+        prevChats.map((chat) =>
+          chat._id === receivedMessage.chatId
+            ? { ...chat, lastMessage: receivedMessage }
+            : chat
+        )
+      );
     }
   }, [receivedMessage, currentChat]);
 
@@ -155,6 +164,14 @@ const Chat = () => {
       const res = await addMessage(message);
       // Add DB message (important!)
       setMessages((prev) => [...prev, res.data]);
+      // Update last message in chat list
+      setChats((prevChats) =>
+        prevChats.map((chat) =>
+          chat._id === currentChat._id
+            ? { ...chat, lastMessage: res.data }
+            : chat
+        )
+      );
       setNewMessage(""); // clear input
     } catch (err) {
       console.log(err);
