@@ -170,7 +170,7 @@ const Chat = () => {
                 data={chat}
                 currentUser={user._id}
                 online={checkOnlineStatus(chat)}
-                setCurrentChat={() => handleChatClick(chat)}
+                setCurrentChat={handleChatClick}
               />
             ))}
           </div>
