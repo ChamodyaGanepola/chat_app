@@ -1,10 +1,10 @@
 import axios from "axios";
 
-const API = axios.create({ baseURL: "https://chat-app-kali.onrender.com" });http://localhost:5000
+const API = axios.create({ baseURL: "https://chat-app-kali.onrender.com" });
 
 API.interceptors.request.use((req) => {
-    if (SessionStorage.getItem('profile')) {
-      req.headers.Authorization = `Bearer ${JSON.parse(SessionStorage.getItem('profile')).token}`;
+    if (sessionStorage.getItem('profile')) {
+      req.headers.Authorization = `Bearer ${JSON.parse(sessionStorage.getItem('profile')).token}`;
     }
   
     return req;

@@ -9,9 +9,9 @@ const authReducer = (
     case "AUTH_START":
       return { ...state, loading: true, error: null };
 
-    // Login/Signup succeeded → saves user info in authData and SessionStorage, clears errors
+    // Login/Signup succeeded → saves user info in authData and sessionStorage, clears errors
     case "AUTH_SUCCESS":
-      SessionStorage.setItem("profile", JSON.stringify({ ...action?.data }));
+      sessionStorage.setItem("profile", JSON.stringify({ ...action?.data }));
       return { ...state, authData: action.data, loading: false, error: null };
 
     // Login/Signup failed → sets descriptive error message
@@ -26,9 +26,9 @@ const authReducer = (
     case "UPDATING_START":
       return { ...state, updateLoading: true, error: null };
 
-    // Profile update succeeded → updates user info in authData and SessionStorage, clears errors
+    // Profile update succeeded → updates user info in authData and sessionStorage, clears errors
     case "UPDATING_SUCCESS":
-      SessionStorage.setItem("profile", JSON.stringify({ ...action?.data }));
+      sessionStorage.setItem("profile", JSON.stringify({ ...action?.data }));
       return { ...state, authData: action.data, updateLoading: false, error: null };
 
     // Profile update failed → sets descriptive error message
@@ -39,9 +39,9 @@ const authReducer = (
         error: action?.message || "Update failed", // default message if none provided
       };
 
-    // Logout → clears user data from state and SessionStorage, resets all states
+    // Logout → clears user data from state and sessionStorage, resets all states
     case "LOG_OUT":
-      SessionStorage.clear();
+      sessionStorage.clear();
       return { authData: null, loading: false, error: null, updateLoading: false };
     // Clear authentication errors
     case "CLEAR_AUTH_ERROR":

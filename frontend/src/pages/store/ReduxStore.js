@@ -7,7 +7,7 @@ import { thunk } from "redux-thunk";
 import { reducers } from "../reducers/index"
 
 
-function saveToSessionStorage(store) {
+function saveTosessionStorage(store) {
   try {
     const stateToPersist = {
       ...store,
@@ -24,7 +24,7 @@ function saveToSessionStorage(store) {
 }
 
 
-function loadFromSessionStorage() {
+function loadFromsessionStorage() {
   try {
     const serializedStore = window.sessionStorage.getItem('store');
     if (serializedStore === null) return undefined;
@@ -35,10 +35,10 @@ function loadFromSessionStorage() {
   }
 }
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
-const persistedState = loadFromSessionStorage();
+const persistedState = loadFromsessionStorage();
 
 const store = createStore(reducers, persistedState, composeEnhancers(applyMiddleware(thunk)));
 
-store.subscribe(() => saveToSessionStorage(store.getState()));
+store.subscribe(() => saveTosessionStorage(store.getState()));
 
 export default store;
