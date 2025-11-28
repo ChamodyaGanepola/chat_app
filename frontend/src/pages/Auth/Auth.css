@@ -154,13 +154,43 @@
     font-size: 28px;     /* scale topic text down */
     margin-bottom: 15px;
   }
-  .authForm {
-    max-width: 90%;
-    padding: 1.5rem;
-  }
+ 
   .inputGroup {
     flex-direction: column;  /* stack inputs vertically on tiny screens */
     gap: 0.8rem;
   }
 }
 
+@media (max-width: 768px) {
+  .Auth {
+    flex-direction: column; /* stack left and right vertically */
+    overflow: hidden; /* prevent outer scroll if needed */
+  }
+
+  .a-left,
+  .a-right {
+    flex: none;            /* remove equal flex height */
+    min-height: 50vh;      /* each takes half screen height */
+    width: 100%;
+    overflow-y: auto;      /* scrollable if content overflows */
+  }
+
+  .a-left {
+    order: 1; /* left side on top */
+  }
+
+  .a-right {
+    order: 2; /* right side below */
+  }
+}
+
+.a-left::-webkit-scrollbar,
+.a-right::-webkit-scrollbar {
+  width: 6px;
+}
+
+.a-left::-webkit-scrollbar-thumb,
+.a-right::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.2);
+  border-radius: 3px;
+}
