@@ -10,7 +10,7 @@ import { useSelector } from "react-redux";
 import { io } from "socket.io-client";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import InputEmoji from "react-input-emoji";
-
+import { addMessage } from "../../api/MessageRequests";
 const Chat = () => {
   const socket = useRef();
   const { user } = useSelector((state) => state.authReducer.authData);
@@ -60,7 +60,9 @@ const Chat = () => {
     socket.current = io("ws://localhost:5000");
     socket.current.emit("new-user-add", user._id);
     socket.current.on("get-users", (users) => setOnlineUsers(users));
-    socket.current.on("create-chat", (newChat) => setChats((prev) => [...prev, newChat]));
+    socket.current.on("create-chat", (newChat) =>
+      setChats((prev) => [...prev, newChat])
+    );
     socket.current.on("receive-message", (data) => setReceivedMessage(data));
   }, [user]);
 
@@ -70,6 +72,16 @@ const Chat = () => {
       socket.current.emit("send-message", sendMessage);
     }
   }, [sendMessage]);
+
+  // Receive Message from socket
+  useEffect(() => {
+    if (
+      receivedMessage !== null &&
+      receivedMessage.chatId === currentChat?._id
+    ) {
+      setMessages((prev) => [...prev, receivedMessage]);
+    }
+  }, [receivedMessage, currentChat]);
 
   // Update window width
   useEffect(() => {
@@ -108,7 +120,10 @@ const Chat = () => {
       const existingChat = await findChat(user._id, selectedUserId);
       if (existingChat.data) handleChatClick(existingChat.data);
       else {
-        const newChat = await createChat({ senderId: user._id, receiverId: selectedUserId });
+        const newChat = await createChat({
+          senderId: user._id,
+          receiverId: selectedUserId,
+        });
         if (newChat.data) handleChatClick(newChat.data);
       }
       setIsDropdownVisible(false);
@@ -119,17 +134,27 @@ const Chat = () => {
 
   const toggleDropdown = () => setIsDropdownVisible(!isDropdownVisible);
 
-  const handleSend = () => {
+  // Send Message handling
+  const handleSend = async () => {
     if (!newMessage.trim() || !currentChat) return;
     const message = {
       senderId: user._id,
       text: newMessage,
       chatId: currentChat._id,
     };
+    // Receiver
     const receiverId = currentChat.members.find((id) => id !== user._id);
+    // Send to socket
     setSendMessage({ ...message, receiverId });
-    setMessages((prev) => [...prev, message]);
-    setNewMessage("");
+    try {
+      // Save to DB
+      const res = await addMessage(message);
+      // Add DB message (important!)
+      setMessages((prev) => [...prev, res.data]);
+      setNewMessage(""); // clear input
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
@@ -150,11 +175,17 @@ const Chat = () => {
             ))}
           </div>
         </div>
-        <button className="plus-button" onClick={toggleDropdown}>+</button>
+        <button className="plus-button" onClick={toggleDropdown}>
+          +
+        </button>
         {isDropdownVisible && (
           <div className="user-dropdown visible">
             {allUsers.map((u) => (
-              <div key={u._id} className="dropdown-item" onClick={() => handleUserSelect(u._id)}>
+              <div
+                key={u._id}
+                className="dropdown-item"
+                onClick={() => handleUserSelect(u._id)}
+              >
                 {u.firstname} {u.lastname}
               </div>
             ))}
@@ -182,15 +213,26 @@ const Chat = () => {
 
             {/* Chat Sender */}
             <div className="chat-sender">
-              <div className="attach-btn" onClick={() => imageRef.current.click()}>+</div>
+              <div
+                className="attach-btn"
+                onClick={() => imageRef.current.click()}
+              >
+                +
+              </div>
               <InputEmoji value={newMessage} onChange={setNewMessage} />
-              <div className="send-button" onClick={handleSend}>Send</div>
+              <div className="send-button" onClick={handleSend}>
+                Send
+              </div>
               <input type="file" style={{ display: "none" }} ref={imageRef} />
             </div>
           </>
         ) : (
           <div className="chatbox-empty">
-            <img src="/typingGIF.gif" alt="Typing" className="chatbox-empty-img" />
+            <img
+              src="/typingGIF.gif"
+              alt="Typing"
+              className="chatbox-empty-img"
+            />
             <h3>No chat selected</h3>
             <p>Pick a conversation from the left panel to start messaging.</p>
           </div>

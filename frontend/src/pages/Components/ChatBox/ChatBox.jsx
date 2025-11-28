@@ -11,6 +11,7 @@ const ChatBox = ({ chat, currentUser, messages, userData }) => {
 
   const firstLetter = userData?.firstname ? userData.firstname.charAt(0).toUpperCase() : "?";
 
+  
   return (
     <div className="ChatBox-container">
       {chat ? (
