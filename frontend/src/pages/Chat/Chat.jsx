@@ -59,7 +59,11 @@ const Chat = () => {
   useEffect(() => {
     socket.current = io("ws://localhost:5000");
     socket.current.emit("new-user-add", user._id);
-    socket.current.on("get-users", (users) => setOnlineUsers(users));
+    socket.current.on("get-users", (users) => {
+      console.log("Active users from socket:", users); 
+      setOnlineUsers(users);
+    });
+
     socket.current.on("create-chat", (newChat) =>
       setChats((prev) => [...prev, newChat])
     );
