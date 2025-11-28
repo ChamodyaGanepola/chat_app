@@ -164,33 +164,16 @@
 @media (max-width: 768px) {
   .Auth {
     flex-direction: column; /* stack left and right vertically */
-    overflow: hidden; /* prevent outer scroll if needed */
+    height: auto;           /* let page height grow naturally */
+    overflow: auto;         /* allow whole page scroll */
   }
 
   .a-left,
   .a-right {
     flex: none;            /* remove equal flex height */
-    min-height: 50vh;      /* each takes half screen height */
+    min-height: auto;      /* remove fixed height */
     width: 100%;
-    overflow-y: auto;      /* scrollable if content overflows */
+    overflow: visible;     /* let content flow naturally */
+    justify-content: flex-start; /* content starts from top */
   }
-
-  .a-left {
-    order: 1; /* left side on top */
-  }
-
-  .a-right {
-    order: 2; /* right side below */
-  }
-}
-
-.a-left::-webkit-scrollbar,
-.a-right::-webkit-scrollbar {
-  width: 6px;
-}
-
-.a-left::-webkit-scrollbar-thumb,
-.a-right::-webkit-scrollbar-thumb {
-  background-color: rgba(0,0,0,0.2);
-  border-radius: 3px;
 }

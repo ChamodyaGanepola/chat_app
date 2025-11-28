@@ -7,7 +7,7 @@ import { thunk } from "redux-thunk";
 import { reducers } from "../reducers/index"
 
 
-function saveToLocalStorage(store) {
+function saveToSessionStorage(store) {
   try {
     const stateToPersist = {
       ...store,
@@ -17,16 +17,16 @@ function saveToLocalStorage(store) {
       },
     };
     const serializedStore = JSON.stringify(stateToPersist);
-    window.localStorage.setItem('store', serializedStore);
+    window.sessionStorage.setItem('store', serializedStore);
   } catch (e) {
     console.log(e);
   }
 }
 
 
-function loadFromLocalStorage() {
+function loadFromSessionStorage() {
   try {
-    const serializedStore = window.localStorage.getItem('store');
+    const serializedStore = window.sessionStorage.getItem('store');
     if (serializedStore === null) return undefined;
     return JSON.parse(serializedStore);
   } catch (e) {
@@ -35,10 +35,10 @@ function loadFromLocalStorage() {
   }
 }
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
-const persistedState = loadFromLocalStorage();
+const persistedState = loadFromSessionStorage();
 
 const store = createStore(reducers, persistedState, composeEnhancers(applyMiddleware(thunk)));
 
-store.subscribe(() => saveToLocalStorage(store.getState()));
+store.subscribe(() => saveToSessionStorage(store.getState()));
 
 export default store;
