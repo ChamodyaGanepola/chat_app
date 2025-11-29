@@ -168,7 +168,6 @@ const Chat = () => {
     // Receiver
     const receiverId = currentChat.members.find((id) => id !== user._id);
     // Send to socket
-    setSendMessage({ ...message, receiverId });
     setSendMessage({
       ...message,
       senderId: user._id,
