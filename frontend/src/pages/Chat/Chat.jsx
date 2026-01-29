@@ -34,14 +34,14 @@ const Chat = () => {
   useEffect(() => {
     const getChats = async () => {
       try {
-        const { data } = await userChats(user._id);
+        const { data } = await userChats();
         // Fetch user info for each chat
         const chatsWithUserData = await Promise.all(
           data.map(async (chat) => {
             const otherUserId = chat.members.find((id) => id !== user._id);
             const userRes = await getUser(otherUserId);
             return { ...chat, userData: userRes.data };
-          })
+          }),
         );
         setChats(chatsWithUserData);
       } catch (error) {
@@ -74,7 +74,7 @@ const Chat = () => {
     });
 
     socket.current.on("create-chat", (newChat) =>
-      setChats((prev) => [...prev, newChat])
+      setChats((prev) => [...prev, newChat]),
     );
     socket.current.on("receive-message", (data) => setReceivedMessage(data));
   }, [user]);
@@ -100,8 +100,8 @@ const Chat = () => {
         prevChats.map((chat) =>
           chat._id === receivedMessage.chatId
             ? { ...chat, lastMessage: receivedMessage }
-            : chat
-        )
+            : chat,
+        ),
       );
     }
   }, [receivedMessage, currentChat]);
@@ -140,11 +140,11 @@ const Chat = () => {
   // Handle creating or finding chat via dropdown
   const handleUserSelect = async (selectedUserId) => {
     try {
-      const existingChat = await findChat(user._id, selectedUserId);
+      const existingChat = await findChat(selectedUserId);
+
       if (existingChat.data) handleChatClick(existingChat.data);
       else {
         const newChat = await createChat({
-          senderId: user._id,
           receiverId: selectedUserId,
         });
         if (newChat.data) handleChatClick(newChat.data);
@@ -185,8 +185,8 @@ const Chat = () => {
         prevChats.map((chat) =>
           chat._id === currentChat._id
             ? { ...chat, lastMessage: res.data }
-            : chat
-        )
+            : chat,
+        ),
       );
       setNewMessage(""); // clear input
     } catch (err) {

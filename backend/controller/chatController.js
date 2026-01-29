@@ -1,42 +1,49 @@
 import ChatModel from "../model/chatModel.js";
-import { io } from '../server.js'
+import { io } from "../server.js";
 
-// ---------------------- Create a new chat ----------------------
+// Create a new chat
 export const createChat = async (req, res) => {
+  const senderId = req.user.id; // authenticated user
+  const { receiverId } = req.body;
+
   const newChat = new ChatModel({
-    members: [req.body.senderId, req.body.receiverId],
+    members: [senderId, receiverId],
   });
+
   try {
     const result = await newChat.save();
-    // Broadcast the new message via Socket.io
-    io.emit("create-chat", result); 
-    // Respond to the HTTP request with the saved chat
+    io.emit("create-chat", result);
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json(error);
   }
 };
 
-// ---------------------- Get all chats for a user ----------------------
+// Get all chats for logged-in user
 export const userChats = async (req, res) => {
+  const userId = req.user.id;
+
   try {
-    const chat = await ChatModel.find({
-      members: { $in: [req.params.userId] },
+    const chats = await ChatModel.find({
+      members: { $in: [userId] },
     });
-    res.status(200).json(chat);
+    res.status(200).json(chats);
   } catch (error) {
     res.status(500).json(error);
   }
 };
 
-// ---------------------- Find a chat between two users ----------------------
+// Find chat between logged-in user and another user
 export const findChat = async (req, res) => {
+  const firstId = req.user.id;
+  const { secondId } = req.params;
+
   try {
     const chat = await ChatModel.findOne({
-      members: { $all: [req.params.firstId, req.params.secondId] },
+      members: { $all: [firstId, secondId] },
     });
-    res.status(200).json(chat)
+    res.status(200).json(chat);
   } catch (error) {
-    res.status(500).json(error)
+    res.status(500).json(error);
   }
 };

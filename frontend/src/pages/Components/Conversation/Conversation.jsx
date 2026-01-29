@@ -9,19 +9,23 @@ const Conversation = ({ data, currentUser, online, setCurrentChat }) => {
   const [lastMessage, setLastMessage] = useState(null);
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    const userId = data.members.find((id) => id !== currentUser);
-    const getUserData = async () => {
-      try {
-        const { data } = await getUser(userId);
-        setUserData(data);
-        dispatch({ type: "SAVE_USER", data: data });
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    getUserData();
-  }, [data, currentUser, dispatch]);
+ useEffect(() => {
+  // Find the other user's ID in the chat
+  const otherUserId = data.members.find((id) => id !== currentUser);
+
+  const fetchUserData = async () => {
+    try {
+      const { data: userData } = await getUser(otherUserId); // API call
+      setUserData(userData);
+      dispatch({ type: "SAVE_USER", data: userData });
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  if (otherUserId) fetchUserData();
+}, [data, currentUser, dispatch]);
+
 
   useEffect(() => {
     const fetchLastMessage = async () => {
@@ -45,7 +49,7 @@ const Conversation = ({ data, currentUser, online, setCurrentChat }) => {
       lastMessage.senderId !== currentUser
     ) {
       try {
-        await readMessage(data._id, currentUser); // call backend
+        await readMessage(data._id); // backend uses req.user.id
         setLastMessage({ ...lastMessage, read: true });
       } catch (err) {
         console.log(err);

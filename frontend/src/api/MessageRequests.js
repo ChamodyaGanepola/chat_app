@@ -1,9 +1,12 @@
-import axios from 'axios'
+import API from "./index.js";
+// Get all messages of a chat
+export const getMessages = (chatId) =>
+  API.get(`/message/${chatId}`);
 
-const API = axios.create({ baseURL: 'https://chat-app-kali.onrender.com' });
+// Add a new message
+export const addMessage = (data) =>
+  API.post("/message", data);
 
-export const getMessages = (id) => API.get(`/message/${id}`);
-
-export const addMessage = (data) => API.post('/message/', data);
-
-export const readMessage = (chatId, userId) => API.put(`/message/${chatId}/${userId}`);
+// Mark messages as read for a chat
+export const readMessage = (chatId) =>
+  API.put(`/message/${chatId}/read`);

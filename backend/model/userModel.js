@@ -19,13 +19,22 @@ const UserSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     gender: {
       type: String,
-      enum: ["Male", "Female", "Other"], // restrict values
+      enum: ["Male", "Female", "Other"],
       required: true,
     },
+    lastLogin: {
+      type: Date,      // store the login date and time
+      default: null,   // null initially, updated on login
+    },
   },
-  { timestamps: true }
+  { timestamps: true } // createdAt and updatedAt
 );
 
 const UserModel = mongoose.model("Users", UserSchema);

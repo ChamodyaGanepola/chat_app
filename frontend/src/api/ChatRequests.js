@@ -1,10 +1,11 @@
-import axios from 'axios'
+import API from "./index.js";
 
+// Create chat
+export const createChat = (data) => API.post("/chat", data);
 
-const API = axios.create({ baseURL: 'https://chat-app-kali.onrender.com' });
+// Get logged-in user's chats
+export const userChats = () => API.get("/chat");
 
-export const createChat = (data) => API.post('/chat/', data);
-
-export const userChats = (id) => API.get(`/chat/${id}`);
-
-export const findChat = (firstId, secondId) => API.get(`/chat/find/${firstId}/${secondId}`);
+// Find chat between users
+export const findChat = (secondId) =>
+  API.get(`/chat/find/${secondId}`);

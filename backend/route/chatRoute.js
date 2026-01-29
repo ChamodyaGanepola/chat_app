@@ -1,9 +1,16 @@
-import express from 'express'
-import { createChat, findChat, userChats } from '../controller/chatController.js';
-const router = express.Router()
+import express from "express";
+import {
+  createChat,
+  findChat,
+  userChats,
+} from "../controller/chatController.js";
+import authMiddleWare from "../middleware/authMiddleware.js";
 
-router.post('/', createChat);
-router.get('/:userId', userChats);
-router.get('/find/:firstId/:secondId', findChat);
+const router = express.Router();
 
-export default router
+// Protected routes
+router.post("/", authMiddleWare, createChat);
+router.get("/", authMiddleWare, userChats);
+router.get("/find/:secondId", authMiddleWare, findChat);
+
+export default router;

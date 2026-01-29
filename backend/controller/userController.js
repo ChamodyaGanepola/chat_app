@@ -52,13 +52,13 @@ export const searchUser = async (req, res) => {
       return res.status(404).json({ message: 'No users found matching the query' });
     }
 
-    // Return the users found, excluding sensitive fields (e.g., password)
+    
     const result = users.map(user => {
       const { password, ...otherDetails } = user._doc; // Exclude password field
-      return otherDetails; // Return other details
+      return otherDetails;
     });
 
-    res.status(200).json(result);  // Return the list of found users
+    res.status(200).json(result); 
   } catch (err) {
     console.error('Error during search:', err);
     res.status(500).json({ error: 'Internal Server Error' });

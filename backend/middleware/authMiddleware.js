@@ -10,7 +10,7 @@ const authMiddleWare = async (req, res, next) => {
     if (token) {
       const decoded = jwt.verify(token, secret);
       console.log(decoded)
-      req.body._id = decoded?.id;
+      req.user = { id: decoded?.id }
     }
     next();
   } catch (error) {
