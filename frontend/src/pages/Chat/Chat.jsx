@@ -5,12 +5,12 @@ import NavIcons from "../Components/NavIcons/NavIcons";
 import "./Chat.css";
 import { userChats, createChat, findChat } from "../../api/ChatRequests";
 import { getAllUser, getUser } from "../../api/UserRequest";
-import { getMessages } from "../../api/MessageRequests";
+import { getMessages, addMessage } from "../../api/MessageRequests";
 import { useSelector } from "react-redux";
 import { io } from "socket.io-client";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import InputEmoji from "react-input-emoji";
-import { addMessage } from "../../api/MessageRequests";
+
 const Chat = () => {
   const socket = useRef();
   const { user } = useSelector((state) => state.authReducer.authData);
@@ -29,124 +29,113 @@ const Chat = () => {
   const [newMessage, setNewMessage] = useState("");
   const imageRef = useRef();
 
-  // Fetch chats for logged-in user
-  // In Chat, when fetching chats:
+  // ------------------- Fetch initial data -------------------
   useEffect(() => {
-    const getChats = async () => {
-      try {
-        const { data } = await userChats();
-        // Fetch user info for each chat
-        const chatsWithUserData = await Promise.all(
-          data.map(async (chat) => {
-            const otherUserId = chat.members.find((id) => id !== user._id);
-            const userRes = await getUser(otherUserId);
-            return { ...chat, userData: userRes.data };
-          }),
-        );
-        setChats(chatsWithUserData);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    getChats();
-  }, [user._id]);
+  const fetchInitialData = async () => {
+    try {
+      // 1️⃣ Fetch user chats
+      const chatRes = await userChats(); 
+      const chatsWithUserData = await Promise.all(
+        chatRes.data.map(async (chat) => {
+          const otherUserId = chat.members.find((id) => id !== user._id);
+          const userRes = await getUser(otherUserId);
+          return { ...chat, userData: userRes.data };
+        }),
+      );
+      setChats(chatsWithUserData);
 
-  // Fetch all users for dropdown
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await getAllUser();
-        setAllUsers(response.data.filter((u) => u._id !== user._id));
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    fetchUsers();
-  }, [user._id]);
+      // 2️⃣ Fetch all users for dropdown
+      const usersRes = await getAllUser();
+      setAllUsers(usersRes.data.filter(u => u._id !== user._id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-  // Socket connection
+  fetchInitialData();
+}, [user._id]);
+
+
+  // ------------------- Socket setup -------------------
   useEffect(() => {
     socket.current = io("https://chat-app-kali.onrender.com");
     socket.current.emit("new-user-add", user._id);
-    socket.current.on("get-users", (users) => {
-      console.log("Active users from socket:", users);
-      setOnlineUsers(users);
+
+    socket.current.on("get-users", setOnlineUsers);
+
+    socket.current.on("receive-message", (data) => setReceivedMessage(data));
+
+    socket.current.on("create-chat", async (newChat) => {
+      const otherUserId = newChat.members.find((id) => id !== user._id);
+      const userRes = await getUser(otherUserId);
+
+      setChats((prev) => [
+        ...prev,
+        { ...newChat, userData: userRes.data, lastMessage: null },
+      ]);
     });
 
-    socket.current.on("create-chat", (newChat) =>
-      setChats((prev) => [...prev, newChat]),
+    return () => socket.current.disconnect();
+  }, [user._id]);
+
+  // ------------------- Real-time message handling -------------------
+  useEffect(() => {
+    if (!receivedMessage) return;
+
+    // Add to messages if it's the current chat
+    if (receivedMessage.chatId === currentChat?._id) {
+      setMessages((prev) => [...prev, receivedMessage]);
+    }
+
+    // Update last message in left-side chat list
+    setChats((prev) =>
+      prev.map((chat) =>
+        chat._id === receivedMessage.chatId
+          ? { ...chat, lastMessage: receivedMessage }
+          : chat,
+      ),
     );
-    socket.current.on("receive-message", (data) => setReceivedMessage(data));
-  }, [user]);
-
-  // Send message via socket
-  useEffect(() => {
-    if (sendMessage !== null) {
-      socket.current.emit("send-message", sendMessage);
-      console.log("Message sent via socket:", sendMessage);
-    }
-  }, [sendMessage]);
-
-  // Receive Message from socket
-  useEffect(() => {
-    if (receivedMessage !== null) {
-      // Add to messages if it's the current chat
-      if (receivedMessage.chatId === currentChat?._id) {
-        setMessages((prev) => [...prev, receivedMessage]);
-      }
-
-      // Update the last message in the left chat list
-      setChats((prevChats) =>
-        prevChats.map((chat) =>
-          chat._id === receivedMessage.chatId
-            ? { ...chat, lastMessage: receivedMessage }
-            : chat,
-        ),
-      );
-    }
   }, [receivedMessage, currentChat]);
 
-  // Update window width
+  // ------------------- Window resize -------------------
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Check if a user is online
-  const checkOnlineStatus = (chat) => {
-    const chatMember = chat.members.find((m) => m !== user._id);
-    return onlineUsers.some((u) => u.userId === chatMember);
-  };
+  // ------------------- Helpers -------------------
+  const checkOnlineStatus = (chat) =>
+    onlineUsers.some(
+      (u) => u.userId === chat.members.find((m) => m !== user._id),
+    );
 
-  // Handle selecting a chat
   const handleChatClick = async (chat) => {
     setCurrentChat(chat);
     setIsChatOpen(true);
-    try {
-      // Fetch messages
-      const res = await getMessages(chat._id);
-      setMessages(res.data || []);
 
-      // Fetch user info
-      const otherUserId = chat.members.find((id) => id !== user._id);
-      const userRes = await getUser(otherUserId);
+    const otherUserId = chat.members.find((id) => id !== user._id);
+
+    try {
+      const [msgRes, userRes] = await Promise.all([
+        getMessages(chat._id),
+        getUser(otherUserId),
+      ]);
+      setMessages(msgRes.data || []);
       setUserData(userRes.data);
     } catch (err) {
       console.error(err);
     }
   };
 
-  // Handle creating or finding chat via dropdown
   const handleUserSelect = async (selectedUserId) => {
     try {
       const existingChat = await findChat(selectedUserId);
 
-      if (existingChat.data) handleChatClick(existingChat.data);
-      else {
-        const newChat = await createChat({
-          receiverId: selectedUserId,
-        });
+      if (existingChat.data) {
+        handleChatClick(existingChat.data);
+      } else {
+        const newChat = await createChat({ receiverId: selectedUserId });
         if (newChat.data) handleChatClick(newChat.data);
       }
       setIsDropdownVisible(false);
@@ -155,42 +144,41 @@ const Chat = () => {
     }
   };
 
-  const toggleDropdown = () => setIsDropdownVisible(!isDropdownVisible);
-
-  // Send Message handling
   const handleSend = async () => {
     if (!newMessage.trim() || !currentChat) return;
+
     const message = {
       senderId: user._id,
       text: newMessage,
       chatId: currentChat._id,
     };
-    // Receiver
     const receiverId = currentChat.members.find((id) => id !== user._id);
-    // Send to socket
+
     setSendMessage({ ...message, receiverId });
-    setSendMessage({
-      ...message,
-      senderId: user._id,
-      receiverId: receiverId,
-    });
 
     try {
-      // Save to DB
       const res = await addMessage(message);
-      // Add DB message (important!)
+
       setMessages((prev) => [...prev, res.data]);
-      // Update last message in chat list
-      setChats((prevChats) =>
-        prevChats.map((chat) =>
+
+      // Add chat to left-side list if not exists
+      setChats((prevChats) => {
+        const exists = prevChats.some((chat) => chat._id === currentChat._id);
+        if (!exists)
+          return [
+            ...prevChats,
+            { ...currentChat, lastMessage: res.data, userData },
+          ];
+        return prevChats.map((chat) =>
           chat._id === currentChat._id
             ? { ...chat, lastMessage: res.data }
             : chat,
-        ),
-      );
-      setNewMessage(""); // clear input
+        );
+      });
+
+      setNewMessage("");
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   };
 
@@ -208,11 +196,15 @@ const Chat = () => {
                 currentUser={user._id}
                 online={checkOnlineStatus(chat)}
                 setCurrentChat={handleChatClick}
+                setChats={setChats} 
               />
             ))}
           </div>
         </div>
-        <button className="plus-button" onClick={toggleDropdown}>
+        <button
+          className="plus-button"
+          onClick={() => setIsDropdownVisible(!isDropdownVisible)}
+        >
           +
         </button>
         {isDropdownVisible && (
@@ -245,10 +237,19 @@ const Chat = () => {
               chat={currentChat}
               currentUser={user._id}
               messages={messages}
+              setMessages={setMessages}
               userData={userData}
+              updateLastMessage={(updatedMessage) => {
+                setChats((prev) =>
+                  prev.map((chatItem) =>
+                    chatItem._id === currentChat._id
+                      ? { ...chatItem, lastMessage: updatedMessage }
+                      : chatItem,
+                  ),
+                );
+              }}
             />
 
-            {/* Chat Sender */}
             <div className="chat-sender">
               <div
                 className="attach-btn"

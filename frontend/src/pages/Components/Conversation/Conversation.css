@@ -7,6 +7,7 @@
   border-radius: 12px;
   transition: background 0.2s;
   cursor: pointer;
+ 
 }
 
 /* Hover effect */
@@ -42,12 +43,12 @@
   justify-content: center;
   overflow: visible; /* make sure text is visible */
 }
+
 .username {
   font-weight: 500;
   font-size: 14px;
-  color: #000;
+  color: #141313; /* force dark color */
 }
-
 
 
 .status {
@@ -66,4 +67,13 @@
 
 .last-message.unread {
   font-weight: bold;
+}
+.chat-delete-icon {
+  margin-left: 30px;
+  color: #999;
+  cursor: pointer;
+}
+
+.chat-delete-icon:hover {
+  color: red;
 }

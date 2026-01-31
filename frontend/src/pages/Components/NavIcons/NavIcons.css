@@ -13,33 +13,54 @@
   
 }
 
-/* Logout container with right gap, vertically centered */
 .logout-container {
   display: flex;
-  align-items: center; /* vertical center */
-  justify-content: flex-end;
-  margin-right: 20px; /* Gap from right edge */
-  height: 100%; /* take full header height */
-  padding-right: 10px;
-  padding-top: 30px;
+  align-items: center;
+  justify-content: space-between; /* avatar+name left, logout right */
+  width: 100%;
+  padding: 10px 20px; /* top/bottom 10px, left/right 20px */
+  box-sizing: border-box; /* ensure padding doesn't break layout */
 }
 
-
-/* Icon styling */
 .nav-icon {
   cursor: pointer;
   font-size: 30px;
   color: white;
   transition: transform 0.3s ease-in-out, color 0.3s ease-in-out;
-  
+  margin-right: 10px; /* gives extra space from the right edge */
 }
 
-
-/* Hover effect */
 .nav-icon:hover {
   transform: scale(1.1);
   color: #ff99cc;
 }
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* space between avatar and username */
+}
+
+.user-name {
+  font-weight: bold;
+  color: white;
+  font-size: 16px;
+}
+
+/* Avatar styling */
+.avatar-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+
 
 /* Responsive adjustments for small screens */
 @media screen and (max-width: 768px) {

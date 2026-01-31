@@ -1,9 +1,7 @@
 import mongoose from "mongoose";
 
-// Define the schema for the Chat collection
 const ChatSchema = new mongoose.Schema(
   {
-    // 'members' stores an array of user IDs referencing the Users collection
     members: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -11,10 +9,28 @@ const ChatSchema = new mongoose.Schema(
         required: true,
       },
     ],
+
+    deletedBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Users",
+      },
+    ],
+
+    // when a user cleared/deleted the chat
+    clearedAt: [
+      {
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Users",
+        },
+        time: {
+          type: Date,
+        },
+      },
+    ],
   },
-  {
-    timestamps: true, 
-  }
+  { timestamps: true }
 );
 
 // Create the Chat model

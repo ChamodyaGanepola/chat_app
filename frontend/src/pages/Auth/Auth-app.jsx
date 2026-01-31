@@ -27,7 +27,7 @@ const Auth = () => {
   useEffect(() => {
     dispatch(clearAuthError());
   }, [dispatch]);
-
+ 
   const handleChange = (e) => {
     setData({ ...data, [e.target.name]: e.target.value });
 

@@ -9,3 +9,8 @@ export const userChats = () => API.get("/chat");
 // Find chat between users
 export const findChat = (secondId) =>
   API.get(`/chat/find/${secondId}`);
+
+//Delete chat (for me only)
+export const deleteChatForMe = (chatId) =>
+  API.delete(`/chat/${chatId}`);
+
