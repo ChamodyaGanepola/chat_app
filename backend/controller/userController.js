@@ -1,5 +1,5 @@
 import UserModel from "../model/userModel.js";
-
+import ChatModel from "../model/chatModel.js";
 // Get a User
 export const getUser = async (req, res) => {
   const id = req.params.id;
@@ -66,4 +66,55 @@ export const searchUser = async (req, res) => {
 };
 
 
+// Block a user
+export const blockUser = async (req, res) => {
+  const userId = req.user.id;
+  const { targetUserId } = req.body;
 
+  try {
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      userId,
+      { $addToSet: { blockedUsers: targetUserId } },
+      { new: true }
+    );
+
+    await ChatModel.findOneAndUpdate(
+      { members: { $all: [userId, targetUserId] } },
+      { blocked: { blockedBy: userId, blockedUser: targetUserId } }
+    );
+   console.log("updatedUser.blockedUsers.map((id) => id.toString())",updatedUser.blockedUsers.map((id) => id.toString()));
+    res.status(200).json({
+      message: "User blocked",
+      blockedUsers: updatedUser.blockedUsers.map((id) => id.toString()), // ✅ convert to string
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Block failed" });
+  }
+};
+
+// Unblock a user
+export const unblockUser = async (req, res) => {
+  const userId = req.user.id;
+  const { targetUserId } = req.body;
+
+  try {
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      userId,
+      { $pull: { blockedUsers: targetUserId } },
+      { new: true }
+    );
+
+    await ChatModel.findOneAndUpdate(
+      { members: { $all: [userId, targetUserId] } },
+      { blocked: { blockedBy: null, blockedUser: null } }
+    );
+  console.log("updatedUser.blockedUsers.map((id) => id.toString())", updatedUser.blockedUsers.map((id) => id.toString()));
+    res.status(200).json({
+      message: "User unblocked",
+      blockedUsers: updatedUser.blockedUsers.map((id) => id.toString()), // ✅ convert to string
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Unblock failed", error });
+  }
+};

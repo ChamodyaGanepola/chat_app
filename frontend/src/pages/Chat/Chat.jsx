@@ -29,32 +29,32 @@ const Chat = () => {
   const [newMessage, setNewMessage] = useState("");
   const imageRef = useRef();
 
+
   // ------------------- Fetch initial data -------------------
   useEffect(() => {
-  const fetchInitialData = async () => {
-    try {
-      // 1️⃣ Fetch user chats
-      const chatRes = await userChats(); 
-      const chatsWithUserData = await Promise.all(
-        chatRes.data.map(async (chat) => {
-          const otherUserId = chat.members.find((id) => id !== user._id);
-          const userRes = await getUser(otherUserId);
-          return { ...chat, userData: userRes.data };
-        }),
-      );
-      setChats(chatsWithUserData);
+    const fetchInitialData = async () => {
+      try {
+        console.log("user", user);        // Fetch user chats
+        const chatRes = await userChats();
+        const chatsWithUserData = await Promise.all(
+          chatRes.data.map(async (chat) => {
+            const otherUserId = chat.members.find((id) => id !== user._id);
+            const userRes = await getUser(otherUserId);
+            return { ...chat, userData: userRes.data };
+          }),
+        );
+        setChats(chatsWithUserData);
 
-      // 2️⃣ Fetch all users for dropdown
-      const usersRes = await getAllUser();
-      setAllUsers(usersRes.data.filter(u => u._id !== user._id));
-    } catch (err) {
-      console.error(err);
-    }
-  };
+        // 2️⃣ Fetch all users for dropdown
+        const usersRes = await getAllUser();
+        setAllUsers(usersRes.data.filter((u) => u._id !== user._id));
+      } catch (err) {
+        console.error(err);
+      }
+    };
 
-  fetchInitialData();
-}, [user._id]);
-
+    fetchInitialData();
+  }, [user._id]);
 
   // ------------------- Socket setup -------------------
   useEffect(() => {
@@ -196,7 +196,7 @@ const Chat = () => {
                 currentUser={user._id}
                 online={checkOnlineStatus(chat)}
                 setCurrentChat={handleChatClick}
-                setChats={setChats} 
+                setChats={setChats}
               />
             ))}
           </div>
@@ -235,10 +235,14 @@ const Chat = () => {
           <>
             <ChatBox
               chat={currentChat}
-              currentUser={user._id}
+              currentUser={user}
               messages={messages}
               setMessages={setMessages}
               userData={userData}
+              setUserData={setUserData}
+              newMessage={newMessage}
+              setNewMessage={setNewMessage}
+              onSend={handleSend}
               updateLastMessage={(updatedMessage) => {
                 setChats((prev) =>
                   prev.map((chatItem) =>
@@ -249,20 +253,6 @@ const Chat = () => {
                 );
               }}
             />
-
-            <div className="chat-sender">
-              <div
-                className="attach-btn"
-                onClick={() => imageRef.current.click()}
-              >
-                +
-              </div>
-              <InputEmoji value={newMessage} onChange={setNewMessage} />
-              <div className="send-button" onClick={handleSend}>
-                Send
-              </div>
-              <input type="file" style={{ display: "none" }} ref={imageRef} />
-            </div>
           </>
         ) : (
           <div className="chatbox-empty">

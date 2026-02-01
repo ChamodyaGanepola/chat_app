@@ -1,29 +1,51 @@
 import MessageModel from "../model/messageModel.js";
 import { io } from "../server.js";
 import ChatModel from "../model/chatModel.js";
+import UserModel from "../model/userModel.js";
 
 
 export const addMessage = async (req, res) => {
   const { chatId, receiverId, text } = req.body;
-  const senderId = req.user.id; // from JWT
-
-  const message = new MessageModel({
-    chatId,
-    senderId,
-    text,
-  });
+  const senderId = req.user.id;
 
   try {
-    //  Save message
+    // 1️⃣ Fetch chat FIRST
+    const chat = await ChatModel.findById(chatId);
+
+    if (!chat) {
+      return res.status(404).json({ message: "Chat not found" });
+    }
+
+    // 2️⃣ BLOCK CHECK (CHAT-LEVEL)
+    if (chat.blocked?.blockedBy) {
+      return res.status(403).json({ message: "Chat is blocked" });
+    }
+
+    // 3️⃣ Fetch sender & receiver (safety)
+    const [sender, receiver] = await Promise.all([
+      UserModel.findById(senderId),
+      UserModel.findById(receiverId),
+    ]);
+
+    if (!sender || !receiver) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // 4️⃣ Save message
+    const message = new MessageModel({
+      chatId,
+      senderId,
+      text,
+    });
+
     const result = await message.save();
 
-    // Restore chat for receiver if they deleted it
+    // 5️⃣ Restore chat if receiver deleted it earlier
     await ChatModel.findByIdAndUpdate(chatId, {
       $pull: { deletedBy: receiverId },
     });
 
-
-    //  Send real-time message if receiver is online
+    // 6️⃣ Realtime emit
     const activeUser = io.getActiveUsers().find(
       (u) => u.userId === receiverId
     );
@@ -34,6 +56,7 @@ export const addMessage = async (req, res) => {
 
     res.status(200).json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json(error);
   }
 };

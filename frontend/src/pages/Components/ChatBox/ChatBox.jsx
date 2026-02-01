@@ -3,20 +3,53 @@ import { format } from "timeago.js";
 import InputEmoji from "react-input-emoji";
 import "./ChatBox.css";
 import { deleteMessage, editMessage } from "../../../api/MessageRequests";
+import { blockUser, unblockUser } from "../../../api/UserRequest";
 
+import { updateBlockedUsers } from "../../../actions/AuthActions";
+
+import { useSelector, useDispatch } from "react-redux";
 const ChatBox = ({
   chat,
-  currentUser,
   messages,
   userData,
+  setUserData,
   setMessages,
   updateLastMessage,
+  newMessage,
+  setNewMessage,
+  onSend,
 }) => {
   const containerRef = useRef(null);
   const [editingId, setEditingId] = useState(null);
   const [editingText, setEditingText] = useState("");
   const [menuOpenId, setMenuOpenId] = useState(null);
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+  const currentUser = useSelector((state) => state.authReducer.authData?.user);
+  const dispatch = useDispatch();
+  const blockedByMe =
+    currentUser?.blockedUsers?.includes(userData?._id) ?? false;
+  const blockedMe = userData?.blockedUsers?.includes(currentUser?._id) ?? false;
+  const isChatBlocked = blockedByMe || blockedMe;
+
+  const handleBlock = async () => {
+    try {
+      const res = await blockUser(userData._id);
+      dispatch(updateBlockedUsers(res.data.blockedUsers));
+      setAvatarMenuOpen(false); // close menu
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleUnblock = async () => {
+    try {
+      const res = await unblockUser(userData._id);
+      dispatch(updateBlockedUsers(res.data.blockedUsers));
+      setAvatarMenuOpen(false); // close menu
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
     if (containerRef.current) {
@@ -25,6 +58,7 @@ const ChatBox = ({
   }, [messages]);
 
   const handleDelete = async (msgId) => {
+    if (isChatBlocked) return;
     try {
       await deleteMessage(msgId);
       setMessages((prev) => prev.filter((m) => m._id !== msgId));
@@ -34,6 +68,7 @@ const ChatBox = ({
   };
 
   const handleEdit = async (msgId) => {
+    if (isChatBlocked) return;
     if (!editingText.trim()) return;
     try {
       const res = await editMessage(msgId, editingText);
@@ -84,18 +119,16 @@ const ChatBox = ({
 
                   {avatarMenuOpen && (
                     <div className="avatar-menu-card">
-                      <div
-                        className="menu-item"
-                        onClick={() => alert("Add Friend clicked")}
-                      >
-                        Add
-                      </div>
-                      <div
-                        className="menu-item"
-                        onClick={() => alert("Block clicked")}
-                      >
-                        Block
-                      </div>
+                      {!blockedByMe ? (
+                        <div className="menu-item" onClick={handleBlock}>
+                          Block
+                        </div>
+                      ) : (
+                        <div className="menu-item" onClick={handleUnblock}>
+                          Unblock
+                        </div>
+                      )}
+
                       <div
                         className="menu-item cancel"
                         onClick={() => setAvatarMenuOpen(false)}
@@ -152,7 +185,7 @@ const ChatBox = ({
                     <span>{msg.text}</span>
                     <span>{format(msg.createdAt)}</span>
 
-                    {msg.senderId === currentUser && (
+                    {msg.senderId === currentUser && !isChatBlocked && (
                       <div className="message-menu-container">
                         <span
                           className="three-dots"
@@ -191,6 +224,27 @@ const ChatBox = ({
                 )}
               </div>
             ))}
+          </div>
+          {/* Chat sender */}
+          <div className="chat-sender">
+            {isChatBlocked ? (
+              <div className="blocked-info">
+                {blockedByMe
+                  ? "You blocked this user. Unblock to send messages."
+                  : "You are blocked by this user. You cannot send messages."}
+              </div>
+            ) : (
+              <>
+                <InputEmoji
+                  value={newMessage}
+                  onChange={setNewMessage}
+                  placeholder="Type a message..."
+                />
+                <div className="send-button" onClick={onSend}>
+                  Send
+                </div>
+              </>
+            )}
           </div>
         </>
       ) : (

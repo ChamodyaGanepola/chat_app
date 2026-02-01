@@ -29,6 +29,7 @@ const authReducer = (
     // Profile update succeeded → updates user info in authData and sessionStorage, clears errors
     case "UPDATING_SUCCESS":
       sessionStorage.setItem("profile", JSON.stringify({ ...action?.data }));
+      console.log("jso", JSON.stringify({ ...action?.data }));
       return { ...state, authData: action.data, updateLoading: false, error: null };
 
     // Profile update failed → sets descriptive error message
@@ -38,6 +39,19 @@ const authReducer = (
         updateLoading: false,
         error: action?.message || "Update failed", // default message if none provided
       };
+    case "UPDATE_BLOCKED_USERS":
+      const updatedUser = {
+        ...state.authData.user,
+        blockedUsers: action.data,
+      };
+      const updatedAuthData = {
+        ...state.authData,
+        user: updatedUser,
+      };
+      sessionStorage.setItem("profile", JSON.stringify(updatedAuthData));
+      return { ...state, authData: updatedAuthData };
+
+
 
     // Logout → clears user data from state and sessionStorage, resets all states
     case "LOG_OUT":

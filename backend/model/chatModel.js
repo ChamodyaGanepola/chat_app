@@ -29,7 +29,20 @@ const ChatSchema = new mongoose.Schema(
         },
       },
     ],
+  blocked: {
+      blockedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Users",
+        default: null,
+      },
+      blockedUser: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Users",
+        default: null,
+      },
+    },
   },
+
   { timestamps: true }
 );
 

@@ -34,3 +34,11 @@ export const clearAuthError = () => {
     type: "CLEAR_AUTH_ERROR",
   };
 };
+
+export const updateBlockedUsers = (blockedUsers) => (dispatch) => {
+  console.log(blockedUsers);
+  dispatch({
+    type: "UPDATE_BLOCKED_USERS",
+    data: blockedUsers,
+  });
+};

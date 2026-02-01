@@ -1,25 +1,30 @@
 import ChatModel from "../model/chatModel.js";
 import MessageModel from "../model/messageModel.js";
+import UserModel from "../model/userModel.js";
 import { io } from "../server.js";
 
 // Create a new chat
 export const createChat = async (req, res) => {
-  const senderId = req.user.id; // authenticated user
+  const senderId = req.user.id;
   const { receiverId } = req.body;
 
-  const newChat = new ChatModel({
-    members: [senderId, receiverId],
-  });
+  // Check if either user blocked the other
+  const sender = await UserModel.findById(senderId);
+  const receiver = await UserModel.findById(receiverId);
 
+  if (sender.blockedUsers.includes(receiverId) || receiver.blockedUsers.includes(senderId)) {
+    return res.status(403).json({ message: "Cannot create chat with blocked user" });
+  }
+
+  const newChat = new ChatModel({ members: [senderId, receiverId] });
   try {
     const result = await newChat.save();
     io.emit("create-chat", result);
     res.status(200).json(result);
-  } catch (error) {
-    res.status(500).json(error);
+  } catch (err) {
+    res.status(500).json(err);
   }
 };
-
 // Get all chats for logged-in user
 
 
