@@ -7,7 +7,8 @@ import UserModel from "../model/userModel.js";
 export const addMessage = async (req, res) => {
   const { chatId, receiverId, text } = req.body;
   const senderId = req.user.id;
-
+  console.log("req.body", req.body);
+  console.log("backend send");
   try {
     // 1️⃣ Fetch chat FIRST
     const chat = await ChatModel.findById(chatId);

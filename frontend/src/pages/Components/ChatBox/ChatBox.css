@@ -30,10 +30,32 @@
   padding: 0.7rem;
   border-radius: 1rem;
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* keep column for text + time */
   gap: 0.3rem;
   background: var(--buttonBg);
   color: white;
+}
+
+.message.own {
+  align-self: flex-end;
+  background: linear-gradient(98.63deg, #ef8dbb 0%, #ed0b9a 100%);
+}
+
+.message-text-row {
+  display: flex;
+  align-items: center; /* aligns text and three-dots vertically */
+  gap: 0.5rem;
+}
+
+.message-text {
+  flex: 1; /* take remaining space */
+}
+
+
+.message-menu-container {
+  position: relative;
+  align-self: flex-end;
+  margin-top: 0.2rem;
 }
 
 .message > span:nth-child(2) {
@@ -83,11 +105,7 @@
   color: red;
 }
 
-.message-menu-container {
-  position: relative;
-  align-self: flex-end;
-  margin-top: 0.2rem;
-}
+
 
 .three-dots {
   cursor: pointer;

@@ -152,76 +152,87 @@ const ChatBox = ({
               <div
                 key={msg._id}
                 className={
-                  msg.senderId === currentUser ? "message own" : "message"
+                  msg.senderId === currentUser._id ? "message own" : "message"
                 }
               >
-                {editingId === msg._id ? (
-                  <div className="edit-message-container">
-                    <InputEmoji
-                      value={editingText}
-                      onChange={setEditingText}
-                      autoFocus
-                      cleanOnEnter={false}
-                      onEnter={() => handleEdit(msg._id)}
-                      placeholder="Edit message..."
-                    />
-                    <div className="edit-message-buttons">
-                      <button
-                        className="save-btn"
-                        onClick={() => handleEdit(msg._id)}
-                      >
-                        Save
-                      </button>
-                      <button
-                        className="cancel-btn"
-                        onClick={() => setEditingId(null)}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <span>{msg.text}</span>
-                    <span>{format(msg.createdAt)}</span>
-
-                    {msg.senderId === currentUser && !isChatBlocked && (
-                      <div className="message-menu-container">
-                        <span
-                          className="three-dots"
-                          onClick={() =>
-                            setMenuOpenId(
-                              menuOpenId === msg._id ? null : msg._id,
-                            )
-                          }
+                <div
+                  key={msg._id}
+                  className={
+                    msg.senderId === currentUser._id ? "message own" : "message"
+                  }
+                >
+                  {editingId === msg._id ? (
+                    <div className="edit-message-container">
+                      <InputEmoji
+                        value={editingText}
+                        onChange={setEditingText}
+                        autoFocus
+                        cleanOnEnter={false}
+                        onEnter={() => handleEdit(msg._id)}
+                        placeholder="Edit message..."
+                      />
+                      <div className="edit-message-buttons">
+                        <button
+                          className="save-btn"
+                          onClick={() => handleEdit(msg._id)}
                         >
-                          &#8942;
-                        </span>
-                        {menuOpenId === msg._id && (
-                          <div className="message-actions-dropdown">
-                            <div
-                              onClick={() => {
-                                setEditingId(msg._id);
-                                setEditingText(msg.text);
-                                setMenuOpenId(null);
-                              }}
+                          Save
+                        </button>
+                        <button
+                          className="cancel-btn"
+                          onClick={() => setEditingId(null)}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="message-text-row">
+                        <span className="message-text">{msg.text}</span>
+
+                        {msg.senderId === currentUser._id && !isChatBlocked && (
+                          <div className="message-menu-container">
+                            <span
+                              className="three-dots"
+                              onClick={() =>
+                                setMenuOpenId(
+                                  menuOpenId === msg._id ? null : msg._id,
+                                )
+                              }
                             >
-                              Edit
-                            </div>
-                            <div
-                              onClick={() => {
-                                handleDelete(msg._id);
-                                setMenuOpenId(null);
-                              }}
-                            >
-                              Delete
-                            </div>
+                              &#8942;
+                            </span>
+                            {menuOpenId === msg._id && (
+                              <div className="message-actions-dropdown">
+                                <div
+                                  onClick={() => {
+                                    setEditingId(msg._id);
+                                    setEditingText(msg.text);
+                                    setMenuOpenId(null);
+                                  }}
+                                >
+                                  Edit
+                                </div>
+                                <div
+                                  onClick={() => {
+                                    handleDelete(msg._id);
+                                    setMenuOpenId(null);
+                                  }}
+                                >
+                                  Delete
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
-                    )}
-                  </>
-                )}
+                      <span className="message-time">
+                        {format(msg.createdAt)}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -239,10 +250,11 @@ const ChatBox = ({
                   value={newMessage}
                   onChange={setNewMessage}
                   placeholder="Type a message..."
+                  onEnter={onSend}
                 />
-                <div className="send-button" onClick={onSend}>
+                <button className="send-button" onClick={onSend}>
                   Send
-                </div>
+                </button>
               </>
             )}
           </div>

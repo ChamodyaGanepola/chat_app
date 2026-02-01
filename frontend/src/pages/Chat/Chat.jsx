@@ -29,12 +29,11 @@ const Chat = () => {
   const [newMessage, setNewMessage] = useState("");
   const imageRef = useRef();
 
-
   // ------------------- Fetch initial data -------------------
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        console.log("user", user);        // Fetch user chats
+        console.log("user", user); // Fetch user chats
         const chatRes = await userChats();
         const chatsWithUserData = await Promise.all(
           chatRes.data.map(async (chat) => {
@@ -146,17 +145,18 @@ const Chat = () => {
 
   const handleSend = async () => {
     if (!newMessage.trim() || !currentChat) return;
-
+    const receiverId = currentChat.members.find((id) => id !== user._id);
+    console.log("receiverId", receiverId);
     const message = {
-      senderId: user._id,
+      receiverId: receiverId,
       text: newMessage,
       chatId: currentChat._id,
     };
-    const receiverId = currentChat.members.find((id) => id !== user._id);
 
-    setSendMessage({ ...message, receiverId });
+    setSendMessage(message);
 
     try {
+      console.log("clicked send");
       const res = await addMessage(message);
 
       setMessages((prev) => [...prev, res.data]);
@@ -201,25 +201,27 @@ const Chat = () => {
             ))}
           </div>
         </div>
-        <button
-          className="plus-button"
-          onClick={() => setIsDropdownVisible(!isDropdownVisible)}
-        >
-          +
-        </button>
-        {isDropdownVisible && (
-          <div className="user-dropdown visible">
-            {allUsers.map((u) => (
-              <div
-                key={u._id}
-                className="dropdown-item"
-                onClick={() => handleUserSelect(u._id)}
-              >
-                {u.firstname} {u.lastname}
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="plus-menu-wrapper">
+          <button
+            className="plus-button"
+            onClick={() => setIsDropdownVisible(!isDropdownVisible)}
+          >
+            +
+          </button>
+          {isDropdownVisible && (
+            <div className="user-dropdown visible">
+              {allUsers.map((u) => (
+                <div
+                  key={u._id}
+                  className="dropdown-item"
+                  onClick={() => handleUserSelect(u._id)}
+                >
+                  {u.firstname} {u.lastname}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Right Side */}

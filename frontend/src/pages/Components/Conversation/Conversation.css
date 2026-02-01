@@ -7,8 +7,29 @@
   border-radius: 12px;
   transition: background 0.2s;
   cursor: pointer;
- 
+
+  justify-content: space-between; /* make avatar+name on left, delete on right */
 }
+
+/* Name & last message container takes remaining space */
+.name-status {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden; /* prevent overflow */
+  flex: 1;          /* fill remaining space */
+}
+
+/* Make last message text ellipsis if too long */
+.last-message {
+  font-size: 0.85rem;
+  color: #555;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
 
 /* Hover effect */
 .conversation:hover {
@@ -37,12 +58,6 @@
 }
 
 
-.name-status {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  overflow: visible; /* make sure text is visible */
-}
 
 .username {
   font-weight: 500;
@@ -68,10 +83,14 @@
 .last-message.unread {
   font-weight: bold;
 }
+
+
+/* Delete icon aligned right */
 .chat-delete-icon {
-  margin-left: 30px;
+  margin-right: 10px;
   color: #999;
   cursor: pointer;
+  flex-shrink: 0; /* prevent shrinking */
 }
 
 .chat-delete-icon:hover {

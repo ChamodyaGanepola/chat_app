@@ -60,11 +60,18 @@
   background-color: #f0f0f0;
 }
 
-/* DROPDOWN */
+.plus-menu-wrapper {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
 .user-dropdown {
   position: absolute;
-  top: 45px;
-  left: 45px;
+  bottom: 60px; /* place it above the button */
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1000;
   background-color: white;
   border: 1px solid #ddd;
@@ -79,6 +86,7 @@
 .user-dropdown.visible {
   display: block;
 }
+
 
 .dropdown-item {
   padding: 10px;
@@ -216,6 +224,7 @@
 .chat-sender .send-button:hover {
   opacity: 0.8;
 }
+
 
 /* MOBILE FIX */
 @media screen and (max-width: 768px) {
